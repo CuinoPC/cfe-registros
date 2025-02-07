@@ -43,12 +43,8 @@ class ApiService {
       List<Map<String, dynamic>> users =
           List<Map<String, dynamic>>.from(jsonDecode(response.body));
 
-      // Asegurar que es_admin sea interpretado como booleano
       users = users.map((user) {
-        return {
-          ...user,
-          "es_admin": user["es_admin"] == true // Convierte 1 a true y 0 a false
-        };
+        return {...user, "es_admin": user["es_admin"] == true};
       }).toList();
 
       return users;
@@ -57,8 +53,8 @@ class ApiService {
     }
   }
 
-  Future<bool> createUser(String nombre, int rp, String area,
-      String contrasenia, bool esAdmin) async {
+  Future<bool> createUser(String nombre, int rp, int areaId, String contrasenia,
+      bool esAdmin) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
@@ -70,7 +66,7 @@ class ApiService {
       body: jsonEncode({
         "nombre_completo": nombre,
         "rp": rp,
-        "area": area,
+        "area_id": areaId, // ✅ Ahora se envía `area_id` en lugar de `area`
         "contrasenia": contrasenia,
         "es_admin": esAdmin
       }),
@@ -79,20 +75,19 @@ class ApiService {
     return response.statusCode == 201;
   }
 
-  Future<bool> updateUser(int rp, String nombre, String area,
-      String contrasenia, bool esAdmin) async {
+  Future<bool> updateUser(int rp, String nombre, int areaId, String contrasenia,
+      bool esAdmin) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
     if (token == null) return false;
 
     final response = await http.put(
-      Uri.parse('$baseUrl/users/$rp'), // ✅ RP anterior en la URL
+      Uri.parse('$baseUrl/users/$rp'),
       headers: {"Content-Type": "application/json", "Authorization": token},
       body: jsonEncode({
-        "rp": rp, // ✅ Nuevo RP en el cuerpo de la solicitud
         "nombre_completo": nombre,
-        "area": area,
+        "area_id": areaId, // ✅ Ahora se envía `area_id`
         "contrasenia": contrasenia,
         "es_admin": esAdmin
       }),
@@ -116,5 +111,23 @@ class ApiService {
     );
 
     return response.statusCode == 200;
+  }
+
+  Future<List<Map<String, dynamic>>?> getAreas() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) return null;
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/areas'),
+      headers: {"Authorization": token},
+    );
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    } else {
+      return null;
+    }
   }
 }

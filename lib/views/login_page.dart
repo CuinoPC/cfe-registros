@@ -78,13 +78,31 @@ class _LoginPageState extends State<LoginPage> {
                     TextField(
                       controller: _rpController,
                       keyboardType: TextInputType.number,
+                      maxLength: 5, // 🔹 Solo permite 5 dígitos
                       decoration: InputDecoration(
                         labelText: 'Número de Trabajador (RP)',
                         prefixIcon: Icon(Icons.badge, color: Colors.green),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        counterText: "", // 🔹 Oculta el contador de caracteres
                       ),
+                      onChanged: (value) {
+                        if (value.length > 5) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  "El RP debe tener exactamente 5 dígitos"),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                          _rpController.text =
+                              value.substring(0, 5); // 🔹 Corta a 5 caracteres
+                          _rpController.selection = TextSelection.fromPosition(
+                            TextPosition(offset: _rpController.text.length),
+                          );
+                        }
+                      },
                     ),
                     SizedBox(height: 16),
                     TextField(

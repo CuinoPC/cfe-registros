@@ -11,22 +11,37 @@ class _AddUserState extends State<AddUser> {
   final ApiService _apiService = ApiService();
   final TextEditingController nombreController = TextEditingController();
   final TextEditingController rpController = TextEditingController();
-  final TextEditingController areaController = TextEditingController();
   final TextEditingController contraseniaController = TextEditingController();
   bool esAdmin = false;
   bool _showPassword = false;
+  int? _selectedAreaId; // ✅ ID del área seleccionada
+  List<Map<String, dynamic>> _areas = []; // ✅ Lista de áreas
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAreas(); // Cargar áreas al iniciar
+  }
+
+  Future<void> _fetchAreas() async {
+    final areas = await _apiService.getAreas();
+    if (areas != null) {
+      setState(() {
+        _areas = areas;
+      });
+    }
+  }
 
   Future<void> _addUser() async {
     String nombre = nombreController.text;
     String rpText = rpController.text;
     int rp = int.tryParse(rpText) ?? 0;
-    String area = areaController.text;
     String contrasenia = contraseniaController.text;
 
     if (nombre.isEmpty ||
         rpText.isEmpty ||
-        area.isEmpty ||
-        contrasenia.isEmpty) {
+        contrasenia.isEmpty ||
+        _selectedAreaId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Todos los campos son obligatorios"),
@@ -37,7 +52,6 @@ class _AddUserState extends State<AddUser> {
     }
 
     if (rpText.length != 5) {
-      // 🔹 Verifica que RP tenga exactamente 5 dígitos
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("El RP debe tener exactamente 5 dígitos"),
@@ -47,8 +61,8 @@ class _AddUserState extends State<AddUser> {
       return;
     }
 
-    bool success =
-        await _apiService.createUser(nombre, rp, area, contrasenia, esAdmin);
+    bool success = await _apiService.createUser(
+        nombre, rp, _selectedAreaId!, contrasenia, esAdmin);
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,36 +137,30 @@ class _AddUserState extends State<AddUser> {
                       TextFormField(
                         controller: rpController,
                         keyboardType: TextInputType.number,
-                        maxLength: 5, // 🔹 Máximo 5 caracteres permitidos
+                        maxLength: 5,
                         decoration: InputDecoration(
                           labelText: "RP",
                           prefixIcon: Icon(Icons.badge, color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          counterText:
-                              "", // 🔹 Oculta el contador de caracteres
+                          counterText: "",
                         ),
-                        onChanged: (value) {
-                          if (value.length > 5) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    "El RP debe tener exactamente 5 dígitos"),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                            rpController.text =
-                                value.substring(0, 5); // 🔹 Limita a 5 dígitos
-                            rpController.selection = TextSelection.fromPosition(
-                              TextPosition(offset: rpController.text.length),
-                            );
-                          }
-                        },
                       ),
                       SizedBox(height: 16),
-                      TextFormField(
-                        controller: areaController,
+                      DropdownButtonFormField<int>(
+                        value: _selectedAreaId,
+                        items: _areas.map((area) {
+                          return DropdownMenuItem<int>(
+                            value: area['id'],
+                            child: Text(area['nom_area']),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedAreaId = value!;
+                          });
+                        },
                         decoration: InputDecoration(
                           labelText: "Área",
                           prefixIcon: Icon(Icons.work, color: Colors.teal),
@@ -166,7 +174,7 @@ class _AddUserState extends State<AddUser> {
                         controller: contraseniaController,
                         obscureText: !_showPassword,
                         decoration: InputDecoration(
-                          labelText: "Contrasenia",
+                          labelText: "Contraseña",
                           prefixIcon: Icon(Icons.lock, color: Colors.teal),
                           suffixIcon: IconButton(
                             icon: Icon(

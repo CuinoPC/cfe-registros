@@ -1,14 +1,14 @@
 class User {
   final String nombre;
   final int rp;
-  final String area;
+  final int areaId; // ✅ Ahora el área es un ID (entero)
   final String contrasenia;
   final bool esAdmin;
 
   User({
     required this.nombre,
     required this.rp,
-    required this.area,
+    required this.areaId, // ✅ Cambiado a entero
     required this.contrasenia,
     required this.esAdmin,
   });
@@ -17,9 +17,8 @@ class User {
     return User(
       nombre: json['nombre_completo'],
       rp: json['rp'],
-      area: json['area'],
-      contrasenia:
-          json['contrasenia'] ?? "No disponible", // Asegurar que nunca sea null
+      areaId: json['area_id'], // ✅ Debe coincidir con la BD
+      contrasenia: json['contrasenia'] ?? "No disponible",
       esAdmin: json['es_admin'],
     );
   }

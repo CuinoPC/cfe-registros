@@ -70,9 +70,10 @@ class _UserListState extends State<UserList> {
                       DataColumn(label: Text("Nombre")),
                       DataColumn(label: Text("RP")),
                       DataColumn(label: Text("Área")),
+                      DataColumn(label: Text("Proceso")),
                       DataColumn(label: Text("Contraseña")),
                       DataColumn(label: Text("Admin")),
-                      DataColumn(label: Text("Opciones")), // 🔹 Nueva columna
+                      DataColumn(label: Text("Opciones")),
                     ],
                     rows: _users.asMap().entries.map((entry) {
                       int index = entry.key + 1; // ✅ Generar número de fila
@@ -81,7 +82,8 @@ class _UserListState extends State<UserList> {
                         DataCell(Text(index.toString())),
                         DataCell(Text(user['nombre_completo'])),
                         DataCell(Text(user['rp'].toString())),
-                        DataCell(Text(user['area'])),
+                        DataCell(Text(user['nom_area'])), // Muestra el área
+                        DataCell(Text(user['proceso'])), // Muestra el proceso
                         DataCell(
                           Row(
                             children: [
