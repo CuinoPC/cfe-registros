@@ -78,4 +78,43 @@ class ApiService {
 
     return response.statusCode == 201;
   }
+
+  Future<bool> updateUser(int rp, String nombre, String area,
+      String contrasenia, bool esAdmin) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) return false;
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/users/$rp'), // ✅ RP anterior en la URL
+      headers: {"Content-Type": "application/json", "Authorization": token},
+      body: jsonEncode({
+        "rp": rp, // ✅ Nuevo RP en el cuerpo de la solicitud
+        "nombre_completo": nombre,
+        "area": area,
+        "contrasenia": contrasenia,
+        "es_admin": esAdmin
+      }),
+    );
+
+    return response.statusCode == 200;
+  }
+
+  Future<bool> deleteUser(int rp) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) return false; // 🔹 Retorna false si no hay token
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/users/$rp'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token // ✅ Se añade el token
+      },
+    );
+
+    return response.statusCode == 200;
+  }
 }

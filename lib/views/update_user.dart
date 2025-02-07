@@ -2,58 +2,47 @@ import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
-class AddUser extends StatefulWidget {
+class UpdateUser extends StatefulWidget {
+  final Map<String, dynamic> user;
+
+  UpdateUser({required this.user});
+
   @override
-  _AddUserState createState() => _AddUserState();
+  _UpdateUserState createState() => _UpdateUserState();
 }
 
-class _AddUserState extends State<AddUser> {
+class _UpdateUserState extends State<UpdateUser> {
   final ApiService _apiService = ApiService();
   final TextEditingController nombreController = TextEditingController();
-  final TextEditingController rpController = TextEditingController();
   final TextEditingController areaController = TextEditingController();
   final TextEditingController contraseniaController = TextEditingController();
+  final TextEditingController rpController = TextEditingController();
   bool esAdmin = false;
   bool _showPassword = false;
 
-  Future<void> _addUser() async {
-    String nombre = nombreController.text;
-    String rpText = rpController.text;
-    int rp = int.tryParse(rpText) ?? 0;
-    String area = areaController.text;
-    String contrasenia = contraseniaController.text;
+  @override
+  void initState() {
+    super.initState();
+    rpController.text = widget.user['rp'].toString(); // ✅ RP como solo lectura
+    nombreController.text = widget.user['nombre_completo'];
+    areaController.text = widget.user['area'];
+    contraseniaController.text = widget.user['contrasenia'];
+    esAdmin = widget.user['es_admin'];
+  }
 
-    if (nombre.isEmpty ||
-        rpText.isEmpty ||
-        area.isEmpty ||
-        contrasenia.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Todos los campos son obligatorios"),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
-      return;
-    }
-
-    if (rpText.length != 5) {
-      // 🔹 Verifica que RP tenga exactamente 5 dígitos
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("El RP debe tener exactamente 5 dígitos"),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
-      return;
-    }
-
-    bool success =
-        await _apiService.createUser(nombre, rp, area, contrasenia, esAdmin);
+  Future<void> _updateUser() async {
+    bool success = await _apiService.updateUser(
+      int.parse(rpController.text), // ✅ Se mantiene el RP
+      nombreController.text,
+      areaController.text,
+      contraseniaController.text,
+      esAdmin,
+    );
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Usuario agregado exitosamente"),
+          content: Text("Usuario actualizado exitosamente"),
           backgroundColor: Colors.green,
         ),
       );
@@ -61,7 +50,7 @@ class _AddUserState extends State<AddUser> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error al agregar usuario"),
+          content: Text("Error al actualizar usuario"),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -100,13 +89,25 @@ class _AddUserState extends State<AddUser> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'Añadir Usuario',
+                        'Actualizar Usuario',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.teal.shade700,
                         ),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: rpController,
+                        decoration: InputDecoration(
+                          labelText: "RP",
+                          prefixIcon: Icon(Icons.badge, color: Colors.teal),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        readOnly: true, // ✅ No se puede modificar el RP
                       ),
                       SizedBox(height: 16),
                       TextFormField(
@@ -118,37 +119,6 @@ class _AddUserState extends State<AddUser> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                      ),
-                      SizedBox(height: 16),
-                      TextFormField(
-                        controller: rpController,
-                        keyboardType: TextInputType.number,
-                        maxLength: 5, // 🔹 Máximo 5 caracteres permitidos
-                        decoration: InputDecoration(
-                          labelText: "RP",
-                          prefixIcon: Icon(Icons.badge, color: Colors.teal),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          counterText:
-                              "", // 🔹 Oculta el contador de caracteres
-                        ),
-                        onChanged: (value) {
-                          if (value.length > 5) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    "El RP debe tener exactamente 5 dígitos"),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                            rpController.text =
-                                value.substring(0, 5); // 🔹 Limita a 5 dígitos
-                            rpController.selection = TextSelection.fromPosition(
-                              TextPosition(offset: rpController.text.length),
-                            );
-                          }
-                        },
                       ),
                       SizedBox(height: 16),
                       TextFormField(
@@ -166,7 +136,7 @@ class _AddUserState extends State<AddUser> {
                         controller: contraseniaController,
                         obscureText: !_showPassword,
                         decoration: InputDecoration(
-                          labelText: "Contrasenia",
+                          labelText: "Contraseña",
                           prefixIcon: Icon(Icons.lock, color: Colors.teal),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -207,7 +177,7 @@ class _AddUserState extends State<AddUser> {
                       ),
                       SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: _addUser,
+                        onPressed: _updateUser,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal.shade700,
                           padding: EdgeInsets.symmetric(vertical: 16),
@@ -216,7 +186,7 @@ class _AddUserState extends State<AddUser> {
                           ),
                         ),
                         child: Text(
-                          "Guardar Usuario",
+                          "Actualizar Usuario",
                           style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                       ),
