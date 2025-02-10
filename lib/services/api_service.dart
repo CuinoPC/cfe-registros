@@ -1,5 +1,7 @@
 import 'package:cfe_registros/models/terminal.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -194,5 +196,47 @@ class ApiService {
     );
 
     return response.statusCode == 200;
+  }
+
+  Future<bool> uploadTerminalPhotos(int terminalId, List<XFile> photos) async {
+    try {
+      var uri = Uri.parse("$baseUrl/terminales/upload");
+      var request = http.MultipartRequest('POST', uri);
+      request.fields['terminalId'] = terminalId.toString();
+
+      for (var photo in photos) {
+        if (kIsWeb) {
+          // ✅ Flutter Web: Usa `bytes` en lugar de `File`
+          var bytes = await photo.readAsBytes();
+          var multipartFile = http.MultipartFile.fromBytes(
+            'photos',
+            bytes,
+            filename: photo.name,
+          );
+          request.files.add(multipartFile);
+        } else {
+          // ✅ Dispositivos móviles: Usa `File`
+          request.files.add(await http.MultipartFile.fromPath(
+            'photos',
+            photo.path,
+          ));
+        }
+      }
+
+      var response = await request.send();
+      var responseBody =
+          await response.stream.bytesToString(); // ✅ Obtener respuesta
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("Fotos subidas correctamente: $responseBody");
+        return true;
+      } else {
+        print("Error en la subida de fotos: $responseBody");
+        return false;
+      }
+    } catch (e) {
+      print("Error en la subida de fotos: $e");
+      return false;
+    }
   }
 }

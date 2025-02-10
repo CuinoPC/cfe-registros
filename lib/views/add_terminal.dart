@@ -1,3 +1,4 @@
+import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
@@ -78,7 +79,7 @@ class _AddTerminalState extends State<AddTerminal> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Añadir Terminal")),
+      appBar: CustomAppBar(),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

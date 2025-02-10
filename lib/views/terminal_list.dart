@@ -1,9 +1,10 @@
 import 'package:cfe_registros/views/custom_appbar.dart';
+import 'package:cfe_registros/views/upload_photos.dart';
+import 'package:cfe_registros/views/view_photos.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
 import '../services/api_service.dart';
 import '../models/terminal.dart';
-import '../models/user.dart';
 import 'add_terminal.dart';
 import 'update_terminal.dart';
 
@@ -72,6 +73,43 @@ class _TerminalListState extends State<TerminalList> {
     }
   }
 
+  void _navigateToUploadPhotos(int terminalId) async {
+    bool? updated = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UploadPhotosPage(terminalId: terminalId),
+      ),
+    );
+
+    if (updated == true) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      await _fetchData(); // ✅ Recargar la lista
+
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _navigateToViewPhotos(List<String> fotos) {
+    if (fotos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("No hay fotos disponibles")),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ViewPhotosPage(fotos: fotos),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,6 +135,7 @@ class _TerminalListState extends State<TerminalList> {
                       DataColumn(label: Text("Nombre Responsable")),
                       DataColumn(label: Text("Usuario (RP)")),
                       DataColumn(label: Text("Área del Usuario")),
+                      DataColumn(label: Text("Fotos")),
                       DataColumn(label: Text("Opciones")),
                     ],
                     rows: _terminales.asMap().entries.map((entry) {
@@ -117,6 +156,29 @@ class _TerminalListState extends State<TerminalList> {
                         ), // ✅ Nombre del Usuario + RP
                         DataCell(Text(_getAreaUsuario(
                             terminal.usuarioId))), // ✅ Área del Usuario
+                        DataCell(
+                          TextButton(
+                            onPressed: () {
+                              if (terminal.fotos.isNotEmpty) {
+                                _navigateToViewPhotos(terminal.fotos);
+                              } else {
+                                _navigateToUploadPhotos(terminal.id);
+                              }
+                            },
+                            child: Text(
+                              terminal.fotos.isNotEmpty
+                                  ? "Ver Fotos"
+                                  : "Cargar Fotos",
+                              style: TextStyle(
+                                color: terminal.fotos.isNotEmpty
+                                    ? Colors.green
+                                    : Colors.blue,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+
                         DataCell(
                           Row(
                             children: [
