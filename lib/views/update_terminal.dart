@@ -1,0 +1,243 @@
+import 'package:cfe_registros/views/custom_appbar.dart';
+import 'package:flutter/material.dart';
+import '../services/api_service.dart';
+import '../models/terminal.dart';
+
+class UpdateTerminal extends StatefulWidget {
+  final Terminal terminal;
+
+  UpdateTerminal({required this.terminal});
+
+  @override
+  _UpdateTerminalState createState() => _UpdateTerminalState();
+}
+
+class _UpdateTerminalState extends State<UpdateTerminal> {
+  final ApiService _apiService = ApiService();
+  final TextEditingController marcaController = TextEditingController();
+  final TextEditingController serieController = TextEditingController();
+  final TextEditingController inventarioController = TextEditingController();
+  final TextEditingController rpeController = TextEditingController();
+  final TextEditingController nombreController = TextEditingController();
+
+  List<Map<String, dynamic>> _usuarios = [];
+  int? _selectedUsuarioId;
+
+  @override
+  void initState() {
+    super.initState();
+    marcaController.text = widget.terminal.marca;
+    serieController.text = widget.terminal.serie;
+    inventarioController.text = widget.terminal.inventario;
+    rpeController.text = widget.terminal.rpeResponsable.toString();
+    nombreController.text = widget.terminal.nombreResponsable;
+    _selectedUsuarioId = widget.terminal.usuarioId;
+
+    _loadUsuarios();
+  }
+
+  Future<void> _loadUsuarios() async {
+    List<Map<String, dynamic>>? usuarios = await _apiService.getUsers();
+    if (usuarios != null) {
+      setState(() {
+        _usuarios = usuarios;
+      });
+    }
+  }
+
+  Future<void> _updateTerminal() async {
+    String marca = marcaController.text;
+    String serie = serieController.text;
+    String inventario = inventarioController.text;
+    int? rpe = int.tryParse(rpeController.text);
+    String nombre = nombreController.text;
+
+    if (marca.isEmpty ||
+        serie.isEmpty ||
+        inventario.isEmpty ||
+        rpe == null ||
+        nombre.isEmpty ||
+        _selectedUsuarioId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Todos los campos son obligatorios"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    bool success = await _apiService.updateTerminal(
+      widget.terminal.id,
+      marca,
+      serie,
+      inventario,
+      rpe,
+      nombre,
+      _selectedUsuarioId!,
+    );
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Terminal actualizada exitosamente"),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error al actualizar terminal"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: CustomAppBar(),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.teal.shade300,
+              Colors.teal.shade700,
+            ],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Container(
+              width: 400,
+              padding: EdgeInsets.all(16.0),
+              child: Card(
+                elevation: 12,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Actualizar Terminal',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal.shade700,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: marcaController,
+                        decoration: InputDecoration(
+                          labelText: "Marca",
+                          prefixIcon:
+                              Icon(Icons.devices_other, color: Colors.teal),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: serieController,
+                        decoration: InputDecoration(
+                          labelText: "Serie",
+                          prefixIcon: Icon(Icons.numbers, color: Colors.teal),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: inventarioController,
+                        decoration: InputDecoration(
+                          labelText: "Inventario",
+                          prefixIcon: Icon(Icons.inventory, color: Colors.teal),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: rpeController,
+                        decoration: InputDecoration(
+                          labelText: "RPE Responsable",
+                          prefixIcon: Icon(Icons.badge, color: Colors.teal),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: nombreController,
+                        decoration: InputDecoration(
+                          labelText: "Nombre Responsable",
+                          prefixIcon: Icon(Icons.person, color: Colors.teal),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      DropdownButtonFormField<int>(
+                        decoration: InputDecoration(
+                          labelText: "Seleccionar Usuario",
+                          prefixIcon: Icon(Icons.supervisor_account,
+                              color: Colors.teal),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        value: _selectedUsuarioId,
+                        items: _usuarios.map((usuario) {
+                          return DropdownMenuItem<int>(
+                            value: usuario['id'],
+                            child: Text(
+                                "${usuario['nombre_completo']} (RP: ${usuario['rp']})"),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedUsuarioId = value;
+                          });
+                        },
+                      ),
+                      SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _updateTerminal,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal.shade700,
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          "Actualizar Terminal",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
