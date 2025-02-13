@@ -86,7 +86,7 @@ class _TerminalListState extends State<TerminalList> {
         _isLoading = true;
       });
 
-      await _fetchData(); // ✅ Recargar la lista
+      await _fetchData(); // ✅ Recargar la lista con las nuevas fotos
 
       setState(() {
         _isLoading = false;
@@ -94,18 +94,11 @@ class _TerminalListState extends State<TerminalList> {
     }
   }
 
-  void _navigateToViewPhotos(List<String> fotos) {
-    if (fotos.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("No hay fotos disponibles")),
-      );
-      return;
-    }
-
+  void _navigateToViewPhotos(Map<String, List<String>> fotosPorFecha) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ViewPhotosPage(fotos: fotos),
+        builder: (context) => ViewPhotosPage(fotosPorFecha: fotosPorFecha),
       ),
     );
   }
@@ -129,6 +122,7 @@ class _TerminalListState extends State<TerminalList> {
                     columns: [
                       DataColumn(label: Text("#")),
                       DataColumn(label: Text("Marca")),
+                      DataColumn(label: Text("Modelo")),
                       DataColumn(label: Text("Serie")),
                       DataColumn(label: Text("Inventario")),
                       DataColumn(label: Text("Responsable (RPE)")),
@@ -136,6 +130,7 @@ class _TerminalListState extends State<TerminalList> {
                       DataColumn(label: Text("Usuario (RP)")),
                       DataColumn(label: Text("Área del Usuario")),
                       DataColumn(label: Text("Fotos")),
+                      DataColumn(label: Text("Fotos Nuevas")),
                       DataColumn(label: Text("Opciones")),
                     ],
                     rows: _terminales.asMap().entries.map((entry) {
@@ -144,6 +139,7 @@ class _TerminalListState extends State<TerminalList> {
                       return DataRow(cells: [
                         DataCell(Text(index.toString())),
                         DataCell(Text(terminal.marca)),
+                        DataCell(Text(terminal.modelo)),
                         DataCell(Text(terminal.serie)),
                         DataCell(Text(terminal.inventario)),
                         DataCell(Text(terminal.rpeResponsable.toString())),
@@ -178,7 +174,21 @@ class _TerminalListState extends State<TerminalList> {
                             ),
                           ),
                         ),
-
+                        DataCell(
+                          terminal.fotos.isEmpty
+                              ? Text("-") // ✅ Si no hay fotos, mostrar "-"
+                              : TextButton(
+                                  onPressed: () {
+                                    _navigateToUploadPhotos(terminal.id);
+                                  },
+                                  child: Text(
+                                    "Cargar Fotos Nuevas",
+                                    style: TextStyle(
+                                        color: Colors.orange,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                        ),
                         DataCell(
                           Row(
                             children: [

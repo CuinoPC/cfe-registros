@@ -15,6 +15,7 @@ class UpdateTerminal extends StatefulWidget {
 class _UpdateTerminalState extends State<UpdateTerminal> {
   final ApiService _apiService = ApiService();
   final TextEditingController marcaController = TextEditingController();
+  final TextEditingController modeloController = TextEditingController();
   final TextEditingController serieController = TextEditingController();
   final TextEditingController inventarioController = TextEditingController();
   final TextEditingController rpeController = TextEditingController();
@@ -27,6 +28,7 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
   void initState() {
     super.initState();
     marcaController.text = widget.terminal.marca;
+    modeloController.text = widget.terminal.modelo;
     serieController.text = widget.terminal.serie;
     inventarioController.text = widget.terminal.inventario;
     rpeController.text = widget.terminal.rpeResponsable.toString();
@@ -47,6 +49,7 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
 
   Future<void> _updateTerminal() async {
     String marca = marcaController.text;
+    String modelo = modeloController.text;
     String serie = serieController.text;
     String inventario = inventarioController.text;
     int? rpe = int.tryParse(rpeController.text);
@@ -70,6 +73,7 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
     bool success = await _apiService.updateTerminal(
       widget.terminal.id,
       marca,
+      modelo,
       serie,
       inventario,
       rpe,
@@ -140,6 +144,18 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                         controller: marcaController,
                         decoration: InputDecoration(
                           labelText: "Marca",
+                          prefixIcon:
+                              Icon(Icons.devices_other, color: Colors.teal),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: modeloController,
+                        decoration: InputDecoration(
+                          labelText: "Modelo",
                           prefixIcon:
                               Icon(Icons.devices_other, color: Colors.teal),
                           border: OutlineInputBorder(

@@ -10,6 +10,7 @@ class AddTerminal extends StatefulWidget {
 class _AddTerminalState extends State<AddTerminal> {
   final ApiService _apiService = ApiService();
   final TextEditingController marcaController = TextEditingController();
+  final TextEditingController modeloController = TextEditingController();
   final TextEditingController serieController = TextEditingController();
   final TextEditingController inventarioController = TextEditingController();
   final TextEditingController rpeController = TextEditingController();
@@ -35,12 +36,14 @@ class _AddTerminalState extends State<AddTerminal> {
 
   Future<void> _addTerminal() async {
     String marca = marcaController.text;
+    String modelo = modeloController.text;
     String serie = serieController.text;
     String inventario = inventarioController.text;
     int? rpe = int.tryParse(rpeController.text);
     String nombre = nombreController.text;
 
     if (marca.isEmpty ||
+        modelo.isEmpty ||
         serie.isEmpty ||
         inventario.isEmpty ||
         rpe == null ||
@@ -56,7 +59,7 @@ class _AddTerminalState extends State<AddTerminal> {
     }
 
     bool success = await _apiService.createTerminal(
-        marca, serie, inventario, rpe, nombre, _selectedUsuarioId!);
+        marca, modelo, serie, inventario, rpe, nombre, _selectedUsuarioId!);
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -121,6 +124,18 @@ class _AddTerminalState extends State<AddTerminal> {
                         controller: marcaController,
                         decoration: InputDecoration(
                           labelText: "Marca",
+                          prefixIcon:
+                              Icon(Icons.devices_other, color: Colors.teal),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: modeloController,
+                        decoration: InputDecoration(
+                          labelText: "Modelo",
                           prefixIcon:
                               Icon(Icons.devices_other, color: Colors.teal),
                           border: OutlineInputBorder(

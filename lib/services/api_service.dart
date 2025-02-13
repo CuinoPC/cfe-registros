@@ -133,15 +133,22 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => Terminal.fromJson(json)).toList();
+      var decodedJson = jsonDecode(response.body);
+
+      // ✅ Asegurar que 'decodedJson' es una lista antes de mapear
+      if (decodedJson is List) {
+        return decodedJson.map((json) => Terminal.fromJson(json)).toList();
+      } else {
+        print("Error: La API no devolvió una lista de terminales.");
+        return null;
+      }
     } else {
       return null;
     }
   }
 
-  Future<bool> createTerminal(String marca, String serie, String inventario,
-      int rpe, String nombre, int usuarioId) async {
+  Future<bool> createTerminal(String marca, String modelo, String serie,
+      String inventario, int rpe, String nombre, int usuarioId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
@@ -151,6 +158,7 @@ class ApiService {
       headers: {"Content-Type": "application/json", "Authorization": token},
       body: jsonEncode({
         "marca": marca,
+        "modelo": modelo,
         "serie": serie,
         "inventario": inventario,
         "rpe_responsable": rpe,
@@ -162,7 +170,7 @@ class ApiService {
     return response.statusCode == 201;
   }
 
-  Future<bool> updateTerminal(int id, String marca, String serie,
+  Future<bool> updateTerminal(int id, String marca, String modelo, String serie,
       String inventario, int rpe, String nombre, int usuarioId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
@@ -174,6 +182,7 @@ class ApiService {
       headers: {"Content-Type": "application/json", "Authorization": token},
       body: jsonEncode({
         "marca": marca,
+        "modelo": modelo,
         "serie": serie,
         "inventario": inventario,
         "rpe_responsable": rpe,

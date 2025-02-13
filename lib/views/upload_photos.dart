@@ -42,14 +42,14 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
     }
 
     setState(() {
-      _isUploading = true; // ✅ Mostrar indicador de carga
+      _isUploading = true;
     });
 
     bool success = await _apiService.uploadTerminalPhotos(
         widget.terminalId, _selectedPhotos);
 
     setState(() {
-      _isUploading = false; // ✅ Ocultar indicador de carga
+      _isUploading = false;
     });
 
     if (success) {
@@ -57,7 +57,6 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
         SnackBar(content: Text("Fotos subidas correctamente")),
       );
 
-      /// ✅ *Asegurar que regresamos con `true` para actualizar `TerminalList`*
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
