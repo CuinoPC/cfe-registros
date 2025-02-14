@@ -1,4 +1,5 @@
 import 'package:cfe_registros/views/custom_appbar.dart';
+import 'package:cfe_registros/views/historial_page.dart';
 import 'package:cfe_registros/views/upload_photos.dart';
 import 'package:cfe_registros/views/view_photos.dart';
 import 'package:flutter/material.dart';
@@ -16,8 +17,11 @@ class TerminalList extends StatefulWidget {
 class _TerminalListState extends State<TerminalList> {
   final ApiService _apiService = ApiService();
   List<Terminal> _terminales = [];
+  List<Terminal> _filteredTerminales = [];
   List<Map<String, dynamic>> _usuarios = []; // Lista de usuarios
   bool _isLoading = true;
+  String _searchQuery = "";
+  String _selectedFilter = "Fecha"; // ✅ Filtro por defecto
 
   @override
   void initState() {
@@ -32,10 +36,57 @@ class _TerminalListState extends State<TerminalList> {
     if (terminales != null && usuariosData != null) {
       setState(() {
         _terminales = terminales;
+        _filteredTerminales = terminales;
         _usuarios = usuariosData;
         _isLoading = false;
       });
     }
+  }
+
+  // 🔹 Filtrar la lista según el texto de búsqueda
+  void _filterSearchResults(String query) {
+    setState(() {
+      _searchQuery = query.toLowerCase();
+      _filteredTerminales = _terminales.where((terminal) {
+        return terminal.marca.toLowerCase().contains(_searchQuery) ||
+            terminal.modelo.toLowerCase().contains(_searchQuery) ||
+            terminal.serie.toLowerCase().contains(_searchQuery) ||
+            terminal.nombreResponsable.toLowerCase().contains(_searchQuery) ||
+            _getNombreUsuario(terminal.usuarioId)
+                .toLowerCase()
+                .contains(_searchQuery);
+      }).toList();
+    });
+  }
+
+  // 🔹 Ordenar la lista según el filtro seleccionado
+  void _sortBySelectedFilter() {
+    setState(() {
+      switch (_selectedFilter) {
+        case "Marca":
+          _filteredTerminales.sort((a, b) => a.marca.compareTo(b.marca));
+          break;
+        case "Modelo":
+          _filteredTerminales.sort((a, b) => a.modelo.compareTo(b.modelo));
+          break;
+        case "Serie":
+          _filteredTerminales.sort((a, b) => a.serie.compareTo(b.serie));
+          break;
+        case "Nombre Responsable":
+          _filteredTerminales.sort(
+              (a, b) => a.nombreResponsable.compareTo(b.nombreResponsable));
+          break;
+        case "Usuario (RP)":
+          _filteredTerminales.sort((a, b) => _getNombreUsuario(a.usuarioId)
+              .compareTo(_getNombreUsuario(b.usuarioId)));
+          break;
+        case "Fecha":
+        default:
+          _filteredTerminales.sort((a, b) =>
+              b.id.compareTo(a.id)); // ✅ Ordenar por ID (más reciente primero)
+          break;
+      }
+    });
   }
 
   // 🔹 Obtener el nombre del usuario
@@ -111,6 +162,131 @@ class _TerminalListState extends State<TerminalList> {
           ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Column(
+                    children: [
+                      // ✅ Encabezado con título y botón de historial
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Lista de Terminales",
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => HistorialPage()),
+                              );
+                            },
+                            icon: Icon(Icons.history),
+                            label: Text("Histórico"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+
+                      // 🔍 Barra de búsqueda con diseño mejorado
+                      TextField(
+                        onChanged: _filterSearchResults,
+                        decoration: InputDecoration(
+                          labelText: "Buscar...",
+                          prefixIcon: Icon(Icons.search,
+                              color: Colors.teal), // Ícono de búsqueda
+                          filled: true,
+                          fillColor: Colors.teal.shade50, // Fondo sutil
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(12), // Bordes redondeados
+                            borderSide: BorderSide.none, // Sin bordes duros
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                                color: Colors.teal,
+                                width: 2), // Borde resaltado
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+
+                      // 🔽 Filtro de Orden con diseño mejorado
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Ordenar por:",
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.teal.shade50, // Fondo suave
+                              borderRadius: BorderRadius.circular(
+                                  12), // Bordes redondeados
+                              border: Border.all(
+                                  color: Colors.teal,
+                                  width: 1.5), // Borde delgado
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedFilter,
+                                icon: Icon(Icons.filter_list,
+                                    color: Colors.teal), // Ícono de filtro
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                                dropdownColor: Colors.white,
+                                items: [
+                                  "Fecha",
+                                  "Marca",
+                                  "Modelo",
+                                  "Serie",
+                                  "Nombre Responsable",
+                                  "Usuario (RP)"
+                                ]
+                                    .map((String value) => DropdownMenuItem(
+                                          value: value,
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 5),
+                                            child: Text(value),
+                                          ),
+                                        ))
+                                    .toList(),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      _selectedFilter = newValue;
+                                      _sortBySelectedFilter();
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: DataTable2(
                     columnSpacing: 12,

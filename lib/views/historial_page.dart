@@ -1,0 +1,270 @@
+import 'package:flutter/material.dart';
+import 'package:data_table_2/data_table_2.dart';
+import 'package:intl/intl.dart';
+import '../services/api_service.dart';
+import '../models/terminal.dart';
+import 'custom_appbar.dart';
+
+class HistorialPage extends StatefulWidget {
+  @override
+  _HistorialPageState createState() => _HistorialPageState();
+}
+
+class _HistorialPageState extends State<HistorialPage> {
+  final ApiService _apiService = ApiService();
+  List<HistorialRegistro> _historial = [];
+  List<HistorialRegistro> _filteredHistorial = [];
+  List<Map<String, dynamic>> _usuarios = [];
+  bool _isLoading = true;
+  String _searchQuery = "";
+  String _selectedFilter = "Fecha"; // ✅ Filtro por defecto
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    List<HistorialRegistro>? historial = await _apiService.getHistorial();
+    List<Map<String, dynamic>>? usuariosData = await _apiService.getUsers();
+
+    if (historial != null && usuariosData != null) {
+      setState(() {
+        _historial = historial;
+        _filteredHistorial = historial;
+        _usuarios = usuariosData;
+        _isLoading = false;
+      });
+      _sortBySelectedFilter(); // ✅ Aplicar el orden correcto al cargar
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      print("No hay registros en el historial.");
+    }
+  }
+
+  // 🔹 Filtrar la lista según el texto de búsqueda
+  void _filterSearchResults(String query) {
+    setState(() {
+      _searchQuery = query.toLowerCase();
+      _filteredHistorial = _historial.where((registro) {
+        return registro.marca.toLowerCase().contains(_searchQuery) ||
+            registro.modelo.toLowerCase().contains(_searchQuery) ||
+            registro.serie.toLowerCase().contains(_searchQuery) ||
+            registro.nombreResponsable.toLowerCase().contains(_searchQuery) ||
+            _getNombreUsuario(registro.usuarioId)
+                .toLowerCase()
+                .contains(_searchQuery);
+      }).toList();
+    });
+  }
+
+  // 🔹 Ordenar la lista según el filtro seleccionado
+  void _sortBySelectedFilter() {
+    setState(() {
+      switch (_selectedFilter) {
+        case "Marca":
+          _filteredHistorial.sort((a, b) => a.marca.compareTo(b.marca));
+          break;
+        case "Modelo":
+          _filteredHistorial.sort((a, b) => a.modelo.compareTo(b.modelo));
+          break;
+        case "Serie":
+          _filteredHistorial.sort((a, b) => a.serie.compareTo(b.serie));
+          break;
+        case "Nombre Responsable":
+          _filteredHistorial.sort(
+              (a, b) => a.nombreResponsable.compareTo(b.nombreResponsable));
+          break;
+        case "Usuario (RP)":
+          _filteredHistorial.sort((a, b) => _getNombreUsuario(a.usuarioId)
+              .compareTo(_getNombreUsuario(b.usuarioId)));
+          break;
+        case "Fecha":
+        default:
+          _filteredHistorial.sort((a, b) => a.fecha
+              .compareTo(b.fecha)); // ✅ Ordenar por fecha (más antiguo primero)
+          break;
+      }
+    });
+  }
+
+  // 🔹 Obtener el nombre del usuario
+  String _getNombreUsuario(int usuarioId) {
+    var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
+        orElse: () => {'nombre_completo': "No disponible"});
+    return usuario['nombre_completo'].toString();
+  }
+
+  // 🔹 Obtener el RP del usuario
+  String _getRpUsuario(int usuarioId) {
+    var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
+        orElse: () => {'rp': "No disponible"});
+    return usuario['rp'].toString();
+  }
+
+  // 🔹 Obtener el área del usuario
+  String _getAreaUsuario(int usuarioId) {
+    var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
+        orElse: () => {'nom_area': "No disponible"});
+    return usuario['nom_area'].toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: CustomAppBar(),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                // ✅ Cabecera con Título, Buscador y Filtro
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Column(
+                    children: [
+                      // 🔍 Barra de búsqueda
+                      TextField(
+                        onChanged: _filterSearchResults,
+                        decoration: InputDecoration(
+                          labelText: "Buscar...",
+                          prefixIcon: Icon(Icons.search,
+                              color: Colors.teal), // Ícono de búsqueda
+                          filled: true,
+                          fillColor: Colors.teal.shade50, // Fondo sutil
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(12), // Bordes redondeados
+                            borderSide: BorderSide.none, // Sin bordes duros
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                                color: Colors.teal,
+                                width: 2), // Borde resaltado
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+
+                      // 🔽 Filtro de Orden
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Ordenar por:",
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.teal.shade50, // Fondo suave
+                              borderRadius: BorderRadius.circular(
+                                  12), // Bordes redondeados
+                              border: Border.all(
+                                  color: Colors.teal,
+                                  width: 1.5), // Borde delgado
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedFilter,
+                                icon: Icon(Icons.filter_list,
+                                    color: Colors.teal), // Ícono de filtro
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                                dropdownColor: Colors.white,
+                                items: [
+                                  "Fecha",
+                                  "Marca",
+                                  "Modelo",
+                                  "Serie",
+                                  "Nombre Responsable",
+                                  "Usuario (RP)"
+                                ]
+                                    .map((String value) => DropdownMenuItem(
+                                          value: value,
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 5),
+                                            child: Text(value),
+                                          ),
+                                        ))
+                                    .toList(),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      _selectedFilter = newValue;
+                                      _sortBySelectedFilter();
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // ✅ Tabla con los datos del historial
+                Expanded(
+                  child: DataTable2(
+                    columnSpacing: 12,
+                    horizontalMargin: 12,
+                    minWidth: 900,
+                    headingRowColor: MaterialStateColor.resolveWith(
+                        (states) => Colors.teal.shade100),
+                    border: TableBorder.all(color: Colors.grey),
+                    columns: [
+                      DataColumn(label: Text("#")),
+                      DataColumn(label: Text("Acción")),
+                      DataColumn(label: Text("Marca")),
+                      DataColumn(label: Text("Modelo")),
+                      DataColumn(label: Text("Serie")),
+                      DataColumn(label: Text("Inventario")),
+                      DataColumn(label: Text("Responsable (RPE)")),
+                      DataColumn(label: Text("Nombre Responsable")),
+                      DataColumn(label: Text("Usuario (RP)")),
+                      DataColumn(label: Text("Área del Usuario")),
+                      DataColumn(label: Text("Fecha")),
+                    ],
+                    rows: _filteredHistorial.asMap().entries.map((entry) {
+                      int index = entry.key + 1;
+                      HistorialRegistro registro = entry.value;
+                      String fechaFormateada = DateFormat("dd/MM/yyyy HH:mm:ss")
+                          .format(registro.fecha);
+
+                      return DataRow(cells: [
+                        DataCell(Text(index.toString())),
+                        DataCell(Text(registro.accion,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: registro.accion == "Creación"
+                                    ? Colors.green
+                                    : Colors.blue))),
+                        DataCell(Text(registro.marca)),
+                        DataCell(Text(registro.modelo)),
+                        DataCell(Text(registro.serie)),
+                        DataCell(Text(registro.inventario)),
+                        DataCell(Text(registro.rpeResponsable.toString())),
+                        DataCell(Text(registro.nombreResponsable)),
+                        DataCell(Text(
+                            "${_getNombreUsuario(registro.usuarioId)} (RP: ${_getRpUsuario(registro.usuarioId)})")),
+                        DataCell(Text(_getAreaUsuario(registro.usuarioId))),
+                        DataCell(Text(fechaFormateada)),
+                      ]);
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}

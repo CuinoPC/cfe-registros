@@ -248,4 +248,40 @@ class ApiService {
       return false;
     }
   }
+
+  Future<List<HistorialRegistro>?> getHistorial() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) {
+      print("Error: No hay token de autenticación.");
+      return null;
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/historial'),
+      headers: {"Authorization": token},
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        var decodedJson = jsonDecode(response.body);
+
+        if (decodedJson is List) {
+          return decodedJson
+              .map((json) => HistorialRegistro.fromJson(json))
+              .toList();
+        } else {
+          print("Error: La API no devolvió una lista válida.");
+          return null;
+        }
+      } catch (e) {
+        print("Error al procesar JSON: $e");
+        return null;
+      }
+    } else {
+      print("Error al obtener historial: Código ${response.statusCode}");
+      return null;
+    }
+  }
 }
