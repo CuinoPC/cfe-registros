@@ -1,8 +1,8 @@
 import 'dart:io';
+import 'package:cfe_registros/services/api_terminales.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import '../services/api_service.dart';
 
 class UploadPhotosPage extends StatefulWidget {
   final int terminalId;
@@ -14,7 +14,7 @@ class UploadPhotosPage extends StatefulWidget {
 }
 
 class _UploadPhotosPageState extends State<UploadPhotosPage> {
-  final ApiService _apiService = ApiService();
+  final ApiTerminalService _ApiTerminalService = ApiTerminalService();
   List<XFile> _selectedPhotos = [];
   bool _isUploading = false; // ✅ Estado para mostrar progreso
 
@@ -45,7 +45,7 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
       _isUploading = true;
     });
 
-    bool success = await _apiService.uploadTerminalPhotos(
+    bool success = await _ApiTerminalService.uploadTerminalPhotos(
         widget.terminalId, _selectedPhotos);
 
     setState(() {

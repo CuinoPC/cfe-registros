@@ -1,6 +1,7 @@
+import 'package:cfe_registros/services/api_terminales.dart';
+import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
 
 class AddTerminal extends StatefulWidget {
   @override
@@ -8,7 +9,8 @@ class AddTerminal extends StatefulWidget {
 }
 
 class _AddTerminalState extends State<AddTerminal> {
-  final ApiService _apiService = ApiService();
+  final ApiTerminalService _ApiTerminalService = ApiTerminalService();
+  final ApiUserService _ApiUserService = ApiUserService();
   final TextEditingController marcaController = TextEditingController();
   final TextEditingController modeloController = TextEditingController();
   final TextEditingController serieController = TextEditingController();
@@ -26,7 +28,7 @@ class _AddTerminalState extends State<AddTerminal> {
   }
 
   Future<void> _loadUsuarios() async {
-    List<Map<String, dynamic>>? usuarios = await _apiService.getUsers();
+    List<Map<String, dynamic>>? usuarios = await _ApiUserService.getUsers();
     if (usuarios != null) {
       setState(() {
         _usuarios = usuarios;
@@ -58,7 +60,7 @@ class _AddTerminalState extends State<AddTerminal> {
       return;
     }
 
-    bool success = await _apiService.createTerminal(
+    bool success = await _ApiTerminalService.createTerminal(
         marca, modelo, serie, inventario, rpe, nombre, _selectedUsuarioId!);
 
     if (success) {

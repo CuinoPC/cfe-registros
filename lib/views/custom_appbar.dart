@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../views/login_page.dart';
 import '../views/user_list.dart';
 import '../views/terminal_list.dart';
-import '../views/admin_dashboard.dart'; // ✅ Importa AdminDashboard
+import 'home_screen.dart'; // ✅ Importa AdminDashboard
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   @override
@@ -151,7 +151,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               context,
               MaterialPageRoute(
                   builder: (context) =>
-                      AdminDashboard()), // ✅ Usa pushReplacement para evitar la flecha
+                      HomeScreen()), // ✅ Usa pushReplacement para evitar la flecha
             );
           } else if (title == "TPS") {
             Navigator.push(

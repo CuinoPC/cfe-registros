@@ -1,5 +1,6 @@
-class Terminal {
+class HistorialRegistro {
   final int id;
+  final int terminalId;
   final String marca;
   final String modelo;
   final String serie;
@@ -7,10 +8,12 @@ class Terminal {
   final int rpeResponsable;
   final String nombreResponsable;
   final int usuarioId;
-  final Map<String, List<String>> fotos;
+  final String accion;
+  final DateTime fecha;
 
-  Terminal({
+  HistorialRegistro({
     required this.id,
+    required this.terminalId,
     required this.marca,
     required this.modelo,
     required this.serie,
@@ -18,12 +21,14 @@ class Terminal {
     required this.rpeResponsable,
     required this.nombreResponsable,
     required this.usuarioId,
-    required this.fotos,
+    required this.accion,
+    required this.fecha,
   });
 
-  factory Terminal.fromJson(Map<String, dynamic> json) {
-    return Terminal(
+  factory HistorialRegistro.fromJson(Map<String, dynamic> json) {
+    return HistorialRegistro(
       id: json['id'],
+      terminalId: json['terminal_id'],
       marca: json['marca'],
       modelo: json['modelo'],
       serie: json['serie'],
@@ -31,10 +36,8 @@ class Terminal {
       rpeResponsable: json['rpe_responsable'],
       nombreResponsable: json['nombre_responsable'],
       usuarioId: json['usuario_id'],
-      fotos: json['fotos'] != null && json['fotos'] is Map<String, dynamic>
-          ? (json['fotos'] as Map<String, dynamic>)
-              .map((key, value) => MapEntry(key, List<String>.from(value)))
-          : {},
+      accion: json['accion'],
+      fecha: DateTime.parse(json['fecha']), // ✅ Convertir fecha
     );
   }
 }

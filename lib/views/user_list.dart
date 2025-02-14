@@ -1,8 +1,8 @@
+import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:cfe_registros/views/update_user.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
-import '../services/api_service.dart';
 import 'add_user.dart';
 
 class UserList extends StatefulWidget {
@@ -11,7 +11,7 @@ class UserList extends StatefulWidget {
 }
 
 class _UserListState extends State<UserList> {
-  final ApiService _apiService = ApiService();
+  final ApiUserService _ApiUserService = ApiUserService();
   List<Map<String, dynamic>> _users = [];
   Map<int, bool> _showPasswords = {}; // Almacenar visibilidad por usuario
   bool _isLoading = true;
@@ -23,7 +23,7 @@ class _UserListState extends State<UserList> {
   }
 
   Future<void> _fetchUsers() async {
-    final users = await _apiService.getUsers();
+    final users = await _ApiUserService.getUsers();
     if (users != null) {
       setState(() {
         _users = users;
@@ -36,7 +36,7 @@ class _UserListState extends State<UserList> {
   }
 
   Future<void> _deleteUser(int rp) async {
-    bool success = await _apiService.deleteUser(rp);
+    bool success = await _ApiUserService.deleteUser(rp);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Usuario eliminado exitosamente")),

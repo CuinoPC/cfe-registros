@@ -1,5 +1,5 @@
+import 'package:cfe_registros/services/api_users.dart';
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
 import '../views/custom_appbar.dart';
 
 class UpdateUser extends StatefulWidget {
@@ -12,7 +12,7 @@ class UpdateUser extends StatefulWidget {
 }
 
 class _UpdateUserState extends State<UpdateUser> {
-  final ApiService _apiService = ApiService();
+  final ApiUserService _ApiUserService = ApiUserService();
   final TextEditingController nombreController = TextEditingController();
   final TextEditingController contraseniaController = TextEditingController();
   final TextEditingController rpController = TextEditingController();
@@ -33,7 +33,7 @@ class _UpdateUserState extends State<UpdateUser> {
   }
 
   Future<void> _fetchAreas() async {
-    final areas = await _apiService.getAreas();
+    final areas = await _ApiUserService.getAreas();
     if (areas != null) {
       setState(() {
         _areas = areas;
@@ -53,7 +53,7 @@ class _UpdateUserState extends State<UpdateUser> {
       return;
     }
 
-    bool success = await _apiService.updateUser(
+    bool success = await _ApiUserService.updateUser(
       int.parse(rpController.text),
       nombreController.text,
       _selectedAreaId!, // ✅ Enviar el área como ID

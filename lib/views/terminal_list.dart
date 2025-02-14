@@ -1,10 +1,11 @@
+import 'package:cfe_registros/services/api_terminales.dart';
+import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:cfe_registros/views/historial_page.dart';
 import 'package:cfe_registros/views/upload_photos.dart';
 import 'package:cfe_registros/views/view_photos.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
-import '../services/api_service.dart';
 import '../models/terminal.dart';
 import 'add_terminal.dart';
 import 'update_terminal.dart';
@@ -15,7 +16,8 @@ class TerminalList extends StatefulWidget {
 }
 
 class _TerminalListState extends State<TerminalList> {
-  final ApiService _apiService = ApiService();
+  final ApiTerminalService _ApiTerminalService = ApiTerminalService();
+  final ApiUserService _ApiUserService = ApiUserService();
   List<Terminal> _terminales = [];
   List<Terminal> _filteredTerminales = [];
   List<Map<String, dynamic>> _usuarios = []; // Lista de usuarios
@@ -30,8 +32,8 @@ class _TerminalListState extends State<TerminalList> {
   }
 
   Future<void> _fetchData() async {
-    List<Terminal>? terminales = await _apiService.getTerminales();
-    List<Map<String, dynamic>>? usuariosData = await _apiService.getUsers();
+    List<Terminal>? terminales = await _ApiTerminalService.getTerminales();
+    List<Map<String, dynamic>>? usuariosData = await _ApiUserService.getUsers();
 
     if (terminales != null && usuariosData != null) {
       setState(() {
@@ -111,7 +113,7 @@ class _TerminalListState extends State<TerminalList> {
   }
 
   Future<void> _deleteTerminal(int id) async {
-    bool success = await _apiService.deleteTerminal(id);
+    bool success = await _ApiTerminalService.deleteTerminal(id);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Terminal eliminada correctamente")),

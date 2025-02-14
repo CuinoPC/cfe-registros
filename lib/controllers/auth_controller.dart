@@ -1,8 +1,8 @@
+import 'package:cfe_registros/services/api_users.dart';
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
 
 class AuthController extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiUserService _apiService = ApiUserService();
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;

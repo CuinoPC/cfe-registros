@@ -1,8 +1,9 @@
+import 'package:cfe_registros/models/historial.dart';
+import 'package:cfe_registros/services/api_terminales.dart';
+import 'package:cfe_registros/services/api_users.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:intl/intl.dart';
-import '../services/api_service.dart';
-import '../models/terminal.dart';
 import 'custom_appbar.dart';
 
 class HistorialPage extends StatefulWidget {
@@ -11,7 +12,8 @@ class HistorialPage extends StatefulWidget {
 }
 
 class _HistorialPageState extends State<HistorialPage> {
-  final ApiService _apiService = ApiService();
+  final ApiTerminalService _ApiTerminalService = ApiTerminalService();
+  final ApiUserService _ApiUserService = ApiUserService();
   List<HistorialRegistro> _historial = [];
   List<HistorialRegistro> _filteredHistorial = [];
   List<Map<String, dynamic>> _usuarios = [];
@@ -26,8 +28,9 @@ class _HistorialPageState extends State<HistorialPage> {
   }
 
   Future<void> _fetchData() async {
-    List<HistorialRegistro>? historial = await _apiService.getHistorial();
-    List<Map<String, dynamic>>? usuariosData = await _apiService.getUsers();
+    List<HistorialRegistro>? historial =
+        await _ApiTerminalService.getHistorial();
+    List<Map<String, dynamic>>? usuariosData = await _ApiUserService.getUsers();
 
     if (historial != null && usuariosData != null) {
       setState(() {

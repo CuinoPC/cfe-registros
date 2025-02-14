@@ -1,6 +1,6 @@
+import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
 
 class AddUser extends StatefulWidget {
   @override
@@ -8,7 +8,7 @@ class AddUser extends StatefulWidget {
 }
 
 class _AddUserState extends State<AddUser> {
-  final ApiService _apiService = ApiService();
+  final ApiUserService _ApiUserService = ApiUserService();
   final TextEditingController nombreController = TextEditingController();
   final TextEditingController rpController = TextEditingController();
   final TextEditingController contraseniaController = TextEditingController();
@@ -24,7 +24,7 @@ class _AddUserState extends State<AddUser> {
   }
 
   Future<void> _fetchAreas() async {
-    final areas = await _apiService.getAreas();
+    final areas = await _ApiUserService.getAreas();
     if (areas != null) {
       setState(() {
         _areas = areas;
@@ -61,7 +61,7 @@ class _AddUserState extends State<AddUser> {
       return;
     }
 
-    bool success = await _apiService.createUser(
+    bool success = await _ApiUserService.createUser(
         nombre, rp, _selectedAreaId!, contrasenia, esAdmin);
 
     if (success) {
