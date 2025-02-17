@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiUserService {
-  final String baseUrl = "http://localhost:5000/api";
+  final String baseUrl = "https://cfe-registros-backend.onrender.com/api";
 
   // 🔹 Inicio de sesión
   Future<Map<String, dynamic>?> login(int rp, String contrasenia) async {

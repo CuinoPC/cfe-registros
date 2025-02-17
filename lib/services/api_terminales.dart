@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 
 class ApiTerminalService {
-  final String baseUrl = "http://localhost:5000/api";
+  final String baseUrl = "https://cfe-registros-backend.onrender.com/api";
 
   // 🔹 Obtener terminales
   Future<List<Terminal>?> getTerminales() async {

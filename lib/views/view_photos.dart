@@ -57,7 +57,7 @@ class ViewPhotosPage extends StatelessWidget {
                                 itemCount: bloqueFotos.length,
                                 itemBuilder: (context, i) {
                                   return Image.network(
-                                    "http://localhost:5000${bloqueFotos[i]}",
+                                    "https://cfe-registros-backend.onrender.com${bloqueFotos[i]}",
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       return const Icon(Icons.broken_image,
