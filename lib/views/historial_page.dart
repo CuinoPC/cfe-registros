@@ -120,12 +120,13 @@ class _HistorialPageState extends State<HistorialPage> {
     return Scaffold(
       appBar: CustomAppBar(),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
                 // ✅ Cabecera con Título, Buscador y Filtro
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Column(
                     children: [
                       // 🔍 Barra de búsqueda
@@ -133,7 +134,7 @@ class _HistorialPageState extends State<HistorialPage> {
                         onChanged: _filterSearchResults,
                         decoration: InputDecoration(
                           labelText: "Buscar...",
-                          prefixIcon: Icon(Icons.search,
+                          prefixIcon: const Icon(Icons.search,
                               color: Colors.teal), // Ícono de búsqueda
                           filled: true,
                           fillColor: Colors.teal.shade50, // Fondo sutil
@@ -144,25 +145,24 @@ class _HistorialPageState extends State<HistorialPage> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                                 color: Colors.teal,
                                 width: 2), // Borde resaltado
                           ),
                         ),
                       ),
-                      SizedBox(height: 10),
-
+                      const SizedBox(height: 10),
                       // 🔽 Filtro de Orden
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             "Ordenar por:",
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 5),
                             decoration: BoxDecoration(
                               color: Colors.teal.shade50, // Fondo suave
@@ -175,9 +175,9 @@ class _HistorialPageState extends State<HistorialPage> {
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton<String>(
                                 value: _selectedFilter,
-                                icon: Icon(Icons.filter_list,
+                                icon: const Icon(Icons.filter_list,
                                     color: Colors.teal), // Ícono de filtro
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.black87,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
@@ -194,7 +194,7 @@ class _HistorialPageState extends State<HistorialPage> {
                                     .map((String value) => DropdownMenuItem(
                                           value: value,
                                           child: Padding(
-                                            padding: EdgeInsets.symmetric(
+                                            padding: const EdgeInsets.symmetric(
                                                 vertical: 5),
                                             child: Text(value),
                                           ),
@@ -225,7 +225,7 @@ class _HistorialPageState extends State<HistorialPage> {
                     headingRowColor: MaterialStateColor.resolveWith(
                         (states) => Colors.teal.shade100),
                     border: TableBorder.all(color: Colors.grey),
-                    columns: [
+                    columns: const [
                       DataColumn(label: Text("#")),
                       DataColumn(label: Text("Acción")),
                       DataColumn(label: Text("Marca")),

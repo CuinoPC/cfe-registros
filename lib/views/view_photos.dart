@@ -1,3 +1,4 @@
+import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // 📌 Importar paquete para formatear la fecha
 
@@ -9,11 +10,11 @@ class ViewPhotosPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Historial de Fotos")),
+      appBar: CustomAppBar(),
       body: fotosPorFecha.isEmpty
-          ? Center(child: Text("No hay fotos disponibles"))
+          ? const Center(child: Text("No hay fotos disponibles"))
           : ListView(
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               children: fotosPorFecha.entries.map((entry) {
                 String fechaISO =
                     entry.key; // 📅 Fecha en formato ISO (yyyy-MM-dd)
@@ -28,10 +29,10 @@ class ViewPhotosPage extends StatelessWidget {
                   children: [
                     Text(
                       "📅 $fechaFormateada",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16),
                     ),
-                    SizedBox(height: 5),
+                    const SizedBox(height: 5),
 
                     // ✅ Dividir fotos en bloques de 7 y mostrar separadores
                     Column(
@@ -46,9 +47,9 @@ class ViewPhotosPage extends StatelessWidget {
                             children: [
                               GridView.builder(
                                 shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
+                                physics: const NeverScrollableScrollPhysics(),
                                 gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 3,
                                   crossAxisSpacing: 10,
                                   mainAxisSpacing: 10,
@@ -59,7 +60,7 @@ class ViewPhotosPage extends StatelessWidget {
                                     "http://localhost:5000${bloqueFotos[i]}",
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
-                                      return Icon(Icons.broken_image,
+                                      return const Icon(Icons.broken_image,
                                           size: 50, color: Colors.red);
                                     },
                                   );
@@ -81,7 +82,7 @@ class ViewPhotosPage extends StatelessWidget {
                         },
                       ),
                     ),
-                    SizedBox(height: 15),
+                    const SizedBox(height: 15),
                   ],
                 );
               }).toList(),

@@ -43,7 +43,7 @@ class _AddUserState extends State<AddUser> {
         contrasenia.isEmpty ||
         _selectedAreaId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Todos los campos son obligatorios"),
           backgroundColor: Colors.redAccent,
         ),
@@ -53,7 +53,7 @@ class _AddUserState extends State<AddUser> {
 
     if (rpText.length != 5) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("El RP debe tener exactamente 5 dígitos"),
           backgroundColor: Colors.redAccent,
         ),
@@ -66,7 +66,7 @@ class _AddUserState extends State<AddUser> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Usuario agregado exitosamente"),
           backgroundColor: Colors.green,
         ),
@@ -74,7 +74,7 @@ class _AddUserState extends State<AddUser> {
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Error al agregar usuario"),
           backgroundColor: Colors.redAccent,
         ),
@@ -101,14 +101,14 @@ class _AddUserState extends State<AddUser> {
           child: SingleChildScrollView(
             child: Container(
               width: 400,
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Card(
                 elevation: 12,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(24.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -122,32 +122,34 @@ class _AddUserState extends State<AddUser> {
                           color: Colors.teal.shade700,
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: nombreController,
                         decoration: InputDecoration(
                           labelText: "Nombre Completo",
-                          prefixIcon: Icon(Icons.person, color: Colors.teal),
+                          prefixIcon:
+                              const Icon(Icons.person, color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: rpController,
                         keyboardType: TextInputType.number,
                         maxLength: 5,
                         decoration: InputDecoration(
                           labelText: "RP",
-                          prefixIcon: Icon(Icons.badge, color: Colors.teal),
+                          prefixIcon:
+                              const Icon(Icons.badge, color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           counterText: "",
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       DropdownButtonFormField<int>(
                         value: _selectedAreaId,
                         items: _areas.map((area) {
@@ -163,19 +165,21 @@ class _AddUserState extends State<AddUser> {
                         },
                         decoration: InputDecoration(
                           labelText: "Área",
-                          prefixIcon: Icon(Icons.work, color: Colors.teal),
+                          prefixIcon:
+                              const Icon(Icons.work, color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: contraseniaController,
                         obscureText: !_showPassword,
                         decoration: InputDecoration(
                           labelText: "Contraseña",
-                          prefixIcon: Icon(Icons.lock, color: Colors.teal),
+                          prefixIcon:
+                              const Icon(Icons.lock, color: Colors.teal),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _showPassword
@@ -194,14 +198,14 @@ class _AddUserState extends State<AddUser> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Row(
                         children: [
-                          Text(
+                          const Text(
                             "Es Administrador",
                             style: TextStyle(fontSize: 16),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Switch(
                             value: esAdmin,
                             onChanged: (bool value) {
@@ -213,17 +217,17 @@ class _AddUserState extends State<AddUser> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: _addUser,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal.shade700,
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(
+                        child: const Text(
                           "Guardar Usuario",
                           style: TextStyle(fontSize: 16, color: Colors.white),
                         ),

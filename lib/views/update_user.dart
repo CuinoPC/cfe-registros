@@ -46,7 +46,7 @@ class _UpdateUserState extends State<UpdateUser> {
   Future<void> _updateUser() async {
     if (_selectedAreaId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
             content: Text("Debe seleccionar un área"),
             backgroundColor: Colors.redAccent),
       );
@@ -63,14 +63,14 @@ class _UpdateUserState extends State<UpdateUser> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
             content: Text("Usuario actualizado exitosamente"),
             backgroundColor: Colors.green),
       );
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
             content: Text("Error al actualizar usuario"),
             backgroundColor: Colors.redAccent),
       );
@@ -96,14 +96,14 @@ class _UpdateUserState extends State<UpdateUser> {
           child: SingleChildScrollView(
             child: Container(
               width: 400,
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Card(
                 elevation: 12,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(24.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -117,30 +117,32 @@ class _UpdateUserState extends State<UpdateUser> {
                           color: Colors.teal.shade700,
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: rpController,
                         decoration: InputDecoration(
                           labelText: "RP",
-                          prefixIcon: Icon(Icons.badge, color: Colors.teal),
+                          prefixIcon:
+                              const Icon(Icons.badge, color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         readOnly: true, // ✅ RP no editable
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: nombreController,
                         decoration: InputDecoration(
                           labelText: "Nombre Completo",
-                          prefixIcon: Icon(Icons.person, color: Colors.teal),
+                          prefixIcon:
+                              const Icon(Icons.person, color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       DropdownButtonFormField<int>(
                         value: _selectedAreaId,
                         items: _areas.map((area) {
@@ -156,19 +158,21 @@ class _UpdateUserState extends State<UpdateUser> {
                         },
                         decoration: InputDecoration(
                           labelText: "Área",
-                          prefixIcon: Icon(Icons.work, color: Colors.teal),
+                          prefixIcon:
+                              const Icon(Icons.work, color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: contraseniaController,
                         obscureText: !_showPassword,
                         decoration: InputDecoration(
                           labelText: "Contraseña",
-                          prefixIcon: Icon(Icons.lock, color: Colors.teal),
+                          prefixIcon:
+                              const Icon(Icons.lock, color: Colors.teal),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _showPassword
@@ -187,14 +191,14 @@ class _UpdateUserState extends State<UpdateUser> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Row(
                         children: [
-                          Text(
+                          const Text(
                             "Es Administrador",
                             style: TextStyle(fontSize: 16),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Switch(
                             value: esAdmin,
                             onChanged: (bool value) {
@@ -206,17 +210,17 @@ class _UpdateUserState extends State<UpdateUser> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: _updateUser,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal.shade700,
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(
+                        child: const Text(
                           "Actualizar Usuario",
                           style: TextStyle(fontSize: 16, color: Colors.white),
                         ),

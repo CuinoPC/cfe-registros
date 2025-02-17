@@ -47,7 +47,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Color.fromARGB(255, 208, 255, 216),
+      backgroundColor: const Color.fromARGB(255, 208, 255, 216),
       toolbarHeight: 80,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -64,7 +64,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                   colorBlendMode: BlendMode.multiply,
                 ),
               ),
-              SizedBox(width: 20),
+              const SizedBox(width: 20),
               _buildNavItem(context, "Inicio"),
               _buildNavItem(context, "TPS"),
               _buildNavItem(context, "Lectores Ópticos"),
@@ -77,24 +77,24 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 children: [
                   Text(
                     _nombreUsuario,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 70, 69, 69)),
                   ),
                   Text(
                     "RP: $_rp",
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 16, color: Color.fromARGB(255, 70, 69, 69)),
                   ),
                 ],
               ),
-              SizedBox(width: 10),
-              Icon(Icons.account_circle,
+              const SizedBox(width: 10),
+              const Icon(Icons.account_circle,
                   color: Color.fromARGB(255, 70, 69, 69), size: 35),
-              SizedBox(width: 20),
+              const SizedBox(width: 20),
               PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert,
+                icon: const Icon(Icons.more_vert,
                     color: Color.fromARGB(255, 70, 69, 69), size: 30),
                 onSelected: (value) {
                   if (value == "logout") {
@@ -109,7 +109,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 itemBuilder: (BuildContext context) {
                   return [
                     if (_esAdmin)
-                      PopupMenuItem<String>(
+                      const PopupMenuItem<String>(
                         value: "admin",
                         child: Row(
                           children: [
@@ -120,7 +120,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                           ],
                         ),
                       ),
-                    PopupMenuItem<String>(
+                    const PopupMenuItem<String>(
                       value: "logout",
                       child: Row(
                         children: [
@@ -166,10 +166,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
         },
         child: Text(
           title,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: const Color.fromARGB(255, 70, 69, 69),
+            color: Color.fromARGB(255, 70, 69, 69),
           ),
         ),
       ),

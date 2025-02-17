@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cfe_registros/services/api_terminales.dart';
+import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -28,7 +29,7 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Máximo 7 imágenes permitidas")),
+        const SnackBar(content: Text("Máximo 7 imágenes permitidas")),
       );
     }
   }
@@ -36,7 +37,7 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
   Future<void> _uploadPhotos() async {
     if (_selectedPhotos.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Selecciona al menos una imagen")),
+        const SnackBar(content: Text("Selecciona al menos una imagen")),
       );
       return;
     }
@@ -54,13 +55,13 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Fotos subidas correctamente")),
+        const SnackBar(content: Text("Fotos subidas correctamente")),
       );
 
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al subir las fotos")),
+        const SnackBar(content: Text("Error al subir las fotos")),
       );
     }
   }
@@ -68,19 +69,19 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Subir Fotos")),
+      appBar: CustomAppBar(),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             ElevatedButton(
               onPressed: _pickImages,
-              child: Text("Seleccionar Fotos"),
+              child: const Text("Seleccionar Fotos"),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Expanded(
               child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
@@ -95,9 +96,9 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
                 },
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             _isUploading
-                ? CircularProgressIndicator() // ✅ Muestra progreso al subir
+                ? const CircularProgressIndicator() // ✅ Muestra progreso al subir
                 : ElevatedButton(
                     onPressed: _uploadPhotos,
                     child: Text("Subir Fotos"),

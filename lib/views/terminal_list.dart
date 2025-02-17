@@ -116,12 +116,12 @@ class _TerminalListState extends State<TerminalList> {
     bool success = await _ApiTerminalService.deleteTerminal(id);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Terminal eliminada correctamente")),
+        const SnackBar(content: Text("Terminal eliminada correctamente")),
       );
       _fetchData();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al eliminar la terminal")),
+        const SnackBar(content: Text("Error al eliminar la terminal")),
       );
     }
   }
@@ -161,7 +161,7 @@ class _TerminalListState extends State<TerminalList> {
     return Scaffold(
       appBar: CustomAppBar(),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
                 Padding(
@@ -172,7 +172,7 @@ class _TerminalListState extends State<TerminalList> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             "Lista de Terminales",
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold),
@@ -185,12 +185,12 @@ class _TerminalListState extends State<TerminalList> {
                                     builder: (context) => HistorialPage()),
                               );
                             },
-                            icon: Icon(Icons.history),
-                            label: Text("Histórico"),
+                            icon: const Icon(Icons.history),
+                            label: const Text("Histórico"),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.teal,
                               foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 10),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -199,14 +199,14 @@ class _TerminalListState extends State<TerminalList> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
                       // 🔍 Barra de búsqueda con diseño mejorado
                       TextField(
                         onChanged: _filterSearchResults,
                         decoration: InputDecoration(
                           labelText: "Buscar...",
-                          prefixIcon: Icon(Icons.search,
+                          prefixIcon: const Icon(Icons.search,
                               color: Colors.teal), // Ícono de búsqueda
                           filled: true,
                           fillColor: Colors.teal.shade50, // Fondo sutil
@@ -217,25 +217,25 @@ class _TerminalListState extends State<TerminalList> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                                 color: Colors.teal,
                                 width: 2), // Borde resaltado
                           ),
                         ),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
                       // 🔽 Filtro de Orden con diseño mejorado
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             "Ordenar por:",
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 5),
                             decoration: BoxDecoration(
                               color: Colors.teal.shade50, // Fondo suave
@@ -248,9 +248,9 @@ class _TerminalListState extends State<TerminalList> {
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton<String>(
                                 value: _selectedFilter,
-                                icon: Icon(Icons.filter_list,
+                                icon: const Icon(Icons.filter_list,
                                     color: Colors.teal), // Ícono de filtro
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.black87,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
@@ -267,7 +267,7 @@ class _TerminalListState extends State<TerminalList> {
                                     .map((String value) => DropdownMenuItem(
                                           value: value,
                                           child: Padding(
-                                            padding: EdgeInsets.symmetric(
+                                            padding: const EdgeInsets.symmetric(
                                                 vertical: 5),
                                             child: Text(value),
                                           ),
@@ -297,7 +297,7 @@ class _TerminalListState extends State<TerminalList> {
                     headingRowColor: MaterialStateColor.resolveWith(
                         (states) => Colors.teal.shade100),
                     border: TableBorder.all(color: Colors.grey),
-                    columns: [
+                    columns: const [
                       DataColumn(label: Text("#")),
                       DataColumn(label: Text("Marca")),
                       DataColumn(label: Text("Modelo")),
@@ -325,7 +325,7 @@ class _TerminalListState extends State<TerminalList> {
                         DataCell(
                           Text(
                             "${_getNombreUsuario(terminal.usuarioId)} (RP: ${_getRpUsuario(terminal.usuarioId)})",
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ), // ✅ Nombre del Usuario + RP
                         DataCell(Text(_getAreaUsuario(
@@ -354,12 +354,13 @@ class _TerminalListState extends State<TerminalList> {
                         ),
                         DataCell(
                           terminal.fotos.isEmpty
-                              ? Text("-") // ✅ Si no hay fotos, mostrar "-"
+                              ? const Text(
+                                  "-") // ✅ Si no hay fotos, mostrar "-"
                               : TextButton(
                                   onPressed: () {
                                     _navigateToUploadPhotos(terminal.id);
                                   },
-                                  child: Text(
+                                  child: const Text(
                                     "Cargar Fotos Nuevas",
                                     style: TextStyle(
                                         color: Colors.orange,
@@ -371,7 +372,8 @@ class _TerminalListState extends State<TerminalList> {
                           Row(
                             children: [
                               IconButton(
-                                icon: Icon(Icons.edit, color: Colors.blue),
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.blue),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
@@ -385,7 +387,8 @@ class _TerminalListState extends State<TerminalList> {
                                 },
                               ),
                               IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () {
                                   _deleteTerminal(terminal.id);
                                 },

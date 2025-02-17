@@ -39,12 +39,12 @@ class _UserListState extends State<UserList> {
     bool success = await _ApiUserService.deleteUser(rp);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Usuario eliminado exitosamente")),
+        const SnackBar(content: Text("Usuario eliminado exitosamente")),
       );
       _fetchUsers(); // Refrescar la lista de usuarios
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al eliminar usuario")),
+        const SnackBar(content: Text("Error al eliminar usuario")),
       );
     }
   }
@@ -65,7 +65,7 @@ class _UserListState extends State<UserList> {
                     headingRowColor: MaterialStateColor.resolveWith(
                         (states) => Colors.teal.shade100),
                     border: TableBorder.all(color: Colors.grey),
-                    columns: [
+                    columns: const [
                       DataColumn(label: Text("#")),
                       DataColumn(label: Text("Nombre")),
                       DataColumn(label: Text("RP")),
@@ -92,7 +92,8 @@ class _UserListState extends State<UserList> {
                                   _showPasswords[user['rp']]!
                                       ? user['contrasenia']
                                       : "******",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
                               IconButton(
@@ -115,7 +116,8 @@ class _UserListState extends State<UserList> {
                           Row(
                             children: [
                               IconButton(
-                                icon: Icon(Icons.edit, color: Colors.blue),
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.blue),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
@@ -130,7 +132,8 @@ class _UserListState extends State<UserList> {
                                 },
                               ),
                               IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () {
                                   _deleteUser(user['rp']);
                                 },

@@ -52,7 +52,7 @@ class _AddTerminalState extends State<AddTerminal> {
         nombre.isEmpty ||
         _selectedUsuarioId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Todos los campos son obligatorios"),
           backgroundColor: Colors.redAccent,
         ),
@@ -65,7 +65,7 @@ class _AddTerminalState extends State<AddTerminal> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Terminal agregada exitosamente"),
           backgroundColor: Colors.green,
         ),
@@ -73,7 +73,7 @@ class _AddTerminalState extends State<AddTerminal> {
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Error al agregar terminal"),
           backgroundColor: Colors.redAccent,
         ),
@@ -100,14 +100,14 @@ class _AddTerminalState extends State<AddTerminal> {
           child: SingleChildScrollView(
             child: Container(
               width: 400,
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Card(
                 elevation: 12,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(24.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -121,42 +121,43 @@ class _AddTerminalState extends State<AddTerminal> {
                           color: Colors.teal.shade700,
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: marcaController,
                         decoration: InputDecoration(
                           labelText: "Marca",
-                          prefixIcon:
-                              Icon(Icons.devices_other, color: Colors.teal),
+                          prefixIcon: const Icon(Icons.devices_other,
+                              color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: modeloController,
                         decoration: InputDecoration(
                           labelText: "Modelo",
-                          prefixIcon:
-                              Icon(Icons.devices_other, color: Colors.teal),
+                          prefixIcon: const Icon(Icons.devices_other,
+                              color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: serieController,
                         decoration: InputDecoration(
                           labelText: "Serie",
-                          prefixIcon: Icon(Icons.numbers, color: Colors.teal),
+                          prefixIcon:
+                              const Icon(Icons.numbers, color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: inventarioController,
                         decoration: InputDecoration(
@@ -167,33 +168,35 @@ class _AddTerminalState extends State<AddTerminal> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: rpeController,
                         decoration: InputDecoration(
                           labelText: "RPE Responsable",
-                          prefixIcon: Icon(Icons.badge, color: Colors.teal),
+                          prefixIcon:
+                              const Icon(Icons.badge, color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       TextFormField(
                         controller: nombreController,
                         decoration: InputDecoration(
                           labelText: "Nombre Responsable",
-                          prefixIcon: Icon(Icons.person, color: Colors.teal),
+                          prefixIcon:
+                              const Icon(Icons.person, color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       DropdownButtonFormField<int>(
                         decoration: InputDecoration(
                           labelText: "Seleccionar Usuario",
-                          prefixIcon: Icon(Icons.supervisor_account,
+                          prefixIcon: const Icon(Icons.supervisor_account,
                               color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -213,17 +216,17 @@ class _AddTerminalState extends State<AddTerminal> {
                           });
                         },
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: _addTerminal,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal.shade700,
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(
+                        child: const Text(
                           "Guardar Terminal",
                           style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
