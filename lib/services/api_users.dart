@@ -3,10 +3,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiUserService {
-  final String baseUrl = "https://cfe-registros-backend.onrender.com/api";
+  final String baseUrl = "http://localhost:5000/api";
 
   // 🔹 Inicio de sesión
-  Future<Map<String, dynamic>?> login(int rp, String contrasenia) async {
+  Future<Map<String, dynamic>?> login(String rp, String contrasenia) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/login'),
       headers: {"Content-Type": "application/json"},
@@ -19,7 +19,7 @@ class ApiUserService {
       await prefs.setString('token', data['token']);
       await prefs.setBool('esAdmin', data['es_admin'] == true);
       await prefs.setString('nombre_usuario', data['nombre_completo']);
-      await prefs.setInt('rp', int.tryParse(data['rp'].toString()) ?? 0);
+      await prefs.setString('rp', data['rp']);
       return data;
     } else {
       return null;
@@ -50,8 +50,8 @@ class ApiUserService {
   }
 
   // 🔹 Crear usuario
-  Future<bool> createUser(String nombre, int rp, int areaId, String contrasenia,
-      bool esAdmin) async {
+  Future<bool> createUser(String nombre, String rp, int areaId,
+      String contrasenia, bool esAdmin) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
@@ -72,8 +72,8 @@ class ApiUserService {
   }
 
   // 🔹 Actualizar usuario
-  Future<bool> updateUser(int rp, String nombre, int areaId, String contrasenia,
-      bool esAdmin) async {
+  Future<bool> updateUser(String rp, String nombre, int areaId,
+      String contrasenia, bool esAdmin) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
@@ -93,7 +93,7 @@ class ApiUserService {
   }
 
   // 🔹 Eliminar usuario
-  Future<bool> deleteUser(int rp) async {
+  Future<bool> deleteUser(String rp) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;

@@ -42,6 +42,11 @@ class _TerminalListState extends State<TerminalList> {
         _usuarios = usuariosData;
         _isLoading = false;
       });
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      print("No hay registros en el historial.");
     }
   }
 
@@ -56,7 +61,9 @@ class _TerminalListState extends State<TerminalList> {
             terminal.nombreResponsable.toLowerCase().contains(_searchQuery) ||
             _getNombreUsuario(terminal.usuarioId)
                 .toLowerCase()
-                .contains(_searchQuery);
+                .contains(_searchQuery) ||
+            _getAreaUsuario(terminal.usuarioId).toLowerCase().contains(
+                _searchQuery); // 🔹 Filtrar también por área del usuario
       }).toList();
     });
   }
@@ -165,7 +172,8 @@ class _TerminalListState extends State<TerminalList> {
           : Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Column(
                     children: [
                       // ✅ Encabezado con título y botón de historial
@@ -311,7 +319,7 @@ class _TerminalListState extends State<TerminalList> {
                       DataColumn(label: Text("Fotos Nuevas")),
                       DataColumn(label: Text("Opciones")),
                     ],
-                    rows: _terminales.asMap().entries.map((entry) {
+                    rows: _filteredTerminales.asMap().entries.map((entry) {
                       int index = entry.key + 1;
                       Terminal terminal = entry.value;
                       return DataRow(cells: [

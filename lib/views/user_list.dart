@@ -13,7 +13,7 @@ class UserList extends StatefulWidget {
 class _UserListState extends State<UserList> {
   final ApiUserService _ApiUserService = ApiUserService();
   List<Map<String, dynamic>> _users = [];
-  Map<int, bool> _showPasswords = {}; // Almacenar visibilidad por usuario
+  Map<String, bool> _showPasswords = {}; // ✅ Ahora usa String como clave
   bool _isLoading = true;
 
   @override
@@ -29,13 +29,13 @@ class _UserListState extends State<UserList> {
         _users = users;
         _isLoading = false;
         _showPasswords = {
-          for (var user in users) user['rp']: false
-        }; // Inicializa los estados de visibilidad
+          for (var user in users) user['rp'].toString(): false
+        }; // ✅ Claves en String
       });
     }
   }
 
-  Future<void> _deleteUser(int rp) async {
+  Future<void> _deleteUser(String rp) async {
     bool success = await _ApiUserService.deleteUser(rp);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -78,10 +78,13 @@ class _UserListState extends State<UserList> {
                     rows: _users.asMap().entries.map((entry) {
                       int index = entry.key + 1; // ✅ Generar número de fila
                       Map<String, dynamic> user = entry.value;
+                      String rp =
+                          user['rp'].toString(); // ✅ Convertir RP a String
+
                       return DataRow(cells: [
                         DataCell(Text(index.toString())),
                         DataCell(Text(user['nombre_completo'])),
-                        DataCell(Text(user['rp'].toString())),
+                        DataCell(Text(rp)), // ✅ Ahora RP es String
                         DataCell(Text(user['nom_area'])), // Muestra el área
                         DataCell(Text(user['proceso'])), // Muestra el proceso
                         DataCell(
@@ -89,7 +92,7 @@ class _UserListState extends State<UserList> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  _showPasswords[user['rp']]!
+                                  _showPasswords[rp]!
                                       ? user['contrasenia']
                                       : "******",
                                   style: const TextStyle(
@@ -97,13 +100,12 @@ class _UserListState extends State<UserList> {
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(_showPasswords[user['rp']]!
+                                icon: Icon(_showPasswords[rp]!
                                     ? Icons.visibility_off
                                     : Icons.visibility),
                                 onPressed: () {
                                   setState(() {
-                                    _showPasswords[user['rp']] =
-                                        !_showPasswords[user['rp']]!;
+                                    _showPasswords[rp] = !_showPasswords[rp]!;
                                   });
                                 },
                               ),
@@ -135,7 +137,7 @@ class _UserListState extends State<UserList> {
                                 icon:
                                     const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () {
-                                  _deleteUser(user['rp']);
+                                  _deleteUser(rp); // ✅ Ahora pasa String
                                 },
                               ),
                             ],

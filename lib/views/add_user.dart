@@ -34,12 +34,11 @@ class _AddUserState extends State<AddUser> {
 
   Future<void> _addUser() async {
     String nombre = nombreController.text;
-    String rpText = rpController.text;
-    int rp = int.tryParse(rpText) ?? 0;
+    String rp = rpController.text; // 🔹 RP ahora es String
     String contrasenia = contraseniaController.text;
 
     if (nombre.isEmpty ||
-        rpText.isEmpty ||
+        rp.isEmpty ||
         contrasenia.isEmpty ||
         _selectedAreaId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,18 +50,19 @@ class _AddUserState extends State<AddUser> {
       return;
     }
 
-    if (rpText.length != 5) {
+    if (rp.length != 5) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("El RP debe tener exactamente 5 dígitos"),
+          content: Text("El RP debe tener exactamente 5 caracteres"),
           backgroundColor: Colors.redAccent,
         ),
       );
       return;
     }
 
-    bool success = await _ApiUserService.createUser(
-        nombre, rp, _selectedAreaId!, contrasenia, esAdmin);
+    bool success = await _ApiUserService.createUser(nombre, rp,
+        _selectedAreaId!, contrasenia, esAdmin // 🔹 RP se envía como String
+        );
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(

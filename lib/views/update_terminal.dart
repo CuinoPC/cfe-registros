@@ -24,7 +24,9 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
   final TextEditingController nombreController = TextEditingController();
 
   List<Map<String, dynamic>> _usuarios = [];
+  List<Terminal> _terminales = [];
   int? _selectedUsuarioId;
+  String _selectedArea = ""; // ✅ Nueva variable para el área del usuario
 
   @override
   void initState() {
@@ -37,16 +39,28 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
     nombreController.text = widget.terminal.nombreResponsable;
     _selectedUsuarioId = widget.terminal.usuarioId;
 
-    _loadUsuarios();
+    _loadUsuariosYTerminales();
   }
 
-  Future<void> _loadUsuarios() async {
+  // 🔹 Obtener lista de usuarios y terminales
+  Future<void> _loadUsuariosYTerminales() async {
     List<Map<String, dynamic>>? usuarios = await _ApiUserService.getUsers();
-    if (usuarios != null) {
+    List<Terminal>? terminales = await _ApiTerminalService.getTerminales();
+
+    if (usuarios != null && terminales != null) {
       setState(() {
         _usuarios = usuarios;
+        _terminales = terminales;
+        _selectedArea = _getAreaUsuario(widget.terminal.usuarioId);
       });
     }
+  }
+
+  // 🔹 Obtener el área del usuario
+  String _getAreaUsuario(int usuarioId) {
+    var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
+        orElse: () => {'nom_area': "No disponible"});
+    return usuario['nom_area'].toString();
   }
 
   Future<void> _updateTerminal() async {
@@ -54,13 +68,13 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
     String modelo = modeloController.text;
     String serie = serieController.text;
     String inventario = inventarioController.text;
-    int? rpe = int.tryParse(rpeController.text);
+    String rpe = rpeController.text;
     String nombre = nombreController.text;
 
     if (marca.isEmpty ||
         serie.isEmpty ||
         inventario.isEmpty ||
-        rpe == null ||
+        rpe.isEmpty ||
         nombre.isEmpty ||
         _selectedUsuarioId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -72,6 +86,7 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
       return;
     }
 
+    // ✅ 1. Actualizar la terminal seleccionada
     bool success = await _ApiTerminalService.updateTerminal(
       widget.terminal.id,
       marca,
@@ -84,9 +99,28 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
     );
 
     if (success) {
+      // ✅ 2. Filtrar terminales con el mismo área
+      List<Terminal> terminalesRelacionadas = _terminales.where((terminal) {
+        return _getAreaUsuario(terminal.usuarioId) == _selectedArea;
+      }).toList();
+
+      // ✅ 3. Actualizar todas las terminales con el nuevo RPE y Nombre
+      for (var terminal in terminalesRelacionadas) {
+        await _ApiTerminalService.updateTerminal(
+          terminal.id,
+          terminal.marca,
+          terminal.modelo,
+          terminal.serie,
+          terminal.inventario,
+          rpe, // Nuevo RPE
+          nombre, // Nuevo Nombre Responsable
+          terminal.usuarioId,
+        );
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Terminal actualizada exitosamente"),
+          content: Text("Terminal y terminales relacionadas actualizadas"),
           backgroundColor: Colors.green,
         ),
       );

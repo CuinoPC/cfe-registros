@@ -7,7 +7,7 @@ class AuthController extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
 
-  Future<bool> login(int rp, String contrasenia) async {
+  Future<bool> login(String rp, String contrasenia) async {
     _isLoading = true;
     notifyListeners();
 

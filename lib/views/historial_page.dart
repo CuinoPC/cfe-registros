@@ -53,8 +53,10 @@ class _HistorialPageState extends State<HistorialPage> {
     setState(() {
       _searchQuery = query.toLowerCase();
       _filteredHistorial = _historial.where((registro) {
-        return registro.marca.toLowerCase().contains(_searchQuery) ||
-            registro.modelo.toLowerCase().contains(_searchQuery) ||
+        return registro.rpeResponsable.toLowerCase().contains(_searchQuery) ||
+            _getAreaUsuario(registro.usuarioId)
+                .toLowerCase()
+                .contains(_searchQuery) ||
             registro.serie.toLowerCase().contains(_searchQuery) ||
             registro.nombreResponsable.toLowerCase().contains(_searchQuery) ||
             _getNombreUsuario(registro.usuarioId)

@@ -54,7 +54,7 @@ class _UpdateUserState extends State<UpdateUser> {
     }
 
     bool success = await _ApiUserService.updateUser(
-      int.parse(rpController.text),
+      rpController.text,
       nombreController.text,
       _selectedAreaId!, // ✅ Enviar el área como ID
       contraseniaController.text,

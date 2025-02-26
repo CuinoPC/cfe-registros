@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 
 class ApiTerminalService {
-  final String baseUrl = "https://cfe-registros-backend.onrender.com/api";
+  final String baseUrl = "http://localhost:5000/api";
 
   // 🔹 Obtener terminales
   Future<List<Terminal>?> getTerminales() async {
@@ -37,7 +37,7 @@ class ApiTerminalService {
 
   // 🔹 Crear una terminal
   Future<bool> createTerminal(String marca, String modelo, String serie,
-      String inventario, int rpe, String nombre, int usuarioId) async {
+      String inventario, String rpe, String nombre, int usuarioId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
@@ -61,7 +61,7 @@ class ApiTerminalService {
 
   // 🔹 Actualizar una terminal
   Future<bool> updateTerminal(int id, String marca, String modelo, String serie,
-      String inventario, int rpe, String nombre, int usuarioId) async {
+      String inventario, String rpe, String nombre, int usuarioId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 

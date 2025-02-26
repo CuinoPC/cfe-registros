@@ -12,7 +12,7 @@ class _LoginPageState extends State<LoginPage> {
   final _rpController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _obscurePassword = true; // Estado para ocultar/mostrar la contraseña
+  bool _obscurePassword = true;
 
   Future<void> _login() async {
     setState(() {
@@ -20,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     bool success = await _authController.login(
-      int.tryParse(_rpController.text) ?? 0,
+      _rpController.text.trim(), // 🔹 Asegurar que RP se pase como String
       _passwordController.text,
     );
 
@@ -47,18 +47,18 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green.shade50, // Fondo verde claro
+      backgroundColor: Colors.green.shade50,
       body: Center(
         child: SingleChildScrollView(
           child: Container(
-            width: 400, // Tamaño fijo para el Card
+            width: 400,
             padding: const EdgeInsets.all(16.0),
             child: Card(
               elevation: 10,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              color: Colors.white, // Fondo blanco del Card
+              color: Colors.white,
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
@@ -71,14 +71,14 @@ class _LoginPageState extends State<LoginPage> {
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green.shade700, // Verde para el título
+                        color: Colors.green.shade700,
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _rpController,
-                      keyboardType: TextInputType.number,
-                      maxLength: 5, // 🔹 Solo permite 5 dígitos
+                      keyboardType: TextInputType.text, // 🔹 Cambiado a texto
+                      maxLength: 5,
                       decoration: InputDecoration(
                         labelText: 'Número de Trabajador (RP)',
                         prefixIcon:
@@ -86,24 +86,8 @@ class _LoginPageState extends State<LoginPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        counterText: "", // 🔹 Oculta el contador de caracteres
+                        counterText: "",
                       ),
-                      onChanged: (value) {
-                        if (value.length > 5) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                  "El RP debe tener exactamente 5 dígitos"),
-                              backgroundColor: Colors.redAccent,
-                            ),
-                          );
-                          _rpController.text =
-                              value.substring(0, 5); // 🔹 Corta a 5 caracteres
-                          _rpController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: _rpController.text.length),
-                          );
-                        }
-                      },
                     ),
                     const SizedBox(height: 16),
                     TextField(
@@ -128,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      obscureText: _obscurePassword, // Controla la visibilidad
+                      obscureText: _obscurePassword,
                     ),
                     const SizedBox(height: 20),
                     _isLoading

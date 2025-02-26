@@ -1,6 +1,6 @@
 class User {
   final String nombre;
-  final int rp;
+  final String rp;
   final int areaId; // ✅ Ahora el área es un ID (entero)
   final String contrasenia;
   final bool esAdmin;

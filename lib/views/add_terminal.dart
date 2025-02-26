@@ -41,14 +41,14 @@ class _AddTerminalState extends State<AddTerminal> {
     String modelo = modeloController.text;
     String serie = serieController.text;
     String inventario = inventarioController.text;
-    int? rpe = int.tryParse(rpeController.text);
+    String rpe = rpeController.text;
     String nombre = nombreController.text;
 
     if (marca.isEmpty ||
         modelo.isEmpty ||
         serie.isEmpty ||
         inventario.isEmpty ||
-        rpe == null ||
+        rpe.isEmpty ||
         nombre.isEmpty ||
         _selectedUsuarioId == null) {
       ScaffoldMessenger.of(context).showSnackBar(

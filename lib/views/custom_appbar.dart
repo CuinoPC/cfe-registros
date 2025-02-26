@@ -15,7 +15,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
 
 class _CustomAppBarState extends State<CustomAppBar> {
   String _nombreUsuario = "";
-  int _rp = 0;
+  String _rp = "";
   bool _esAdmin = false;
 
   @override
@@ -28,7 +28,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _nombreUsuario = prefs.getString('nombre_usuario') ?? "Desconocido";
-      _rp = prefs.getInt('rp') ?? 0;
+      _rp = prefs.getString('rp') ?? "Desconocido";
       _esAdmin = prefs.getBool('esAdmin') ?? false;
     });
   }

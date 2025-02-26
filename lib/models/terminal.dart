@@ -4,7 +4,7 @@ class Terminal {
   final String modelo;
   final String serie;
   final String inventario;
-  final int rpeResponsable;
+  final String rpeResponsable;
   final String nombreResponsable;
   final int usuarioId;
   final Map<String, List<String>> fotos;
