@@ -13,6 +13,7 @@ class _AddUserState extends State<AddUser> {
   final TextEditingController rpController = TextEditingController();
   final TextEditingController contraseniaController = TextEditingController();
   bool esAdmin = false;
+  bool esCentro = false; // ✅ Agregar esta variable
   bool _showPassword = false;
   int? _selectedAreaId; // ✅ ID del área seleccionada
   List<Map<String, dynamic>> _areas = []; // ✅ Lista de áreas
@@ -60,8 +61,13 @@ class _AddUserState extends State<AddUser> {
       return;
     }
 
-    bool success = await _ApiUserService.createUser(nombre, rp,
-        _selectedAreaId!, contrasenia, esAdmin // 🔹 RP se envía como String
+    bool success = await _ApiUserService.createUser(
+        nombre,
+        rp,
+        _selectedAreaId!,
+        contrasenia,
+        esAdmin,
+        esCentro // 🔹 RP se envía como String
         );
 
     if (success) {
@@ -211,6 +217,25 @@ class _AddUserState extends State<AddUser> {
                             onChanged: (bool value) {
                               setState(() {
                                 esAdmin = value;
+                              });
+                            },
+                            activeColor: Colors.teal,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          const Text(
+                            "Es Jefe de Centro",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          const Spacer(),
+                          Switch(
+                            value: esCentro,
+                            onChanged: (bool value) {
+                              setState(() {
+                                esCentro = value;
                               });
                             },
                             activeColor: Colors.teal,

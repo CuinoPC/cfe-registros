@@ -17,6 +17,7 @@ class _UpdateUserState extends State<UpdateUser> {
   final TextEditingController contraseniaController = TextEditingController();
   final TextEditingController rpController = TextEditingController();
   bool esAdmin = false;
+  bool esCentro = false; // ✅ Agregar esta variable
   bool _showPassword = false;
   int? _selectedAreaId; // ✅ ID del área seleccionada
   List<Map<String, dynamic>> _areas = []; // ✅ Lista de áreas disponibles
@@ -59,6 +60,7 @@ class _UpdateUserState extends State<UpdateUser> {
       _selectedAreaId!, // ✅ Enviar el área como ID
       contraseniaController.text,
       esAdmin,
+      esCentro,
     );
 
     if (success) {
@@ -204,6 +206,25 @@ class _UpdateUserState extends State<UpdateUser> {
                             onChanged: (bool value) {
                               setState(() {
                                 esAdmin = value;
+                              });
+                            },
+                            activeColor: Colors.teal,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          const Text(
+                            "Es Jefe de Centro",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          const Spacer(),
+                          Switch(
+                            value: esCentro,
+                            onChanged: (bool value) {
+                              setState(() {
+                                esCentro = value;
                               });
                             },
                             activeColor: Colors.teal,

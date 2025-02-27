@@ -41,7 +41,12 @@ class ApiUserService {
       List<Map<String, dynamic>> users =
           List<Map<String, dynamic>>.from(jsonDecode(response.body));
       users = users.map((user) {
-        return {...user, "es_admin": user["es_admin"] == true};
+        return {
+          ...user,
+          "es_admin": user["es_admin"] == true,
+          "es_centro": user["es_centro"] == true ||
+              user["es_centro"] == 1 // ✅ Agregar campo es_centro
+        };
       }).toList();
       return users;
     } else {
@@ -51,7 +56,7 @@ class ApiUserService {
 
   // 🔹 Crear usuario
   Future<bool> createUser(String nombre, String rp, int areaId,
-      String contrasenia, bool esAdmin) async {
+      String contrasenia, bool esAdmin, bool esCentro) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
@@ -64,7 +69,8 @@ class ApiUserService {
         "rp": rp,
         "area_id": areaId,
         "contrasenia": contrasenia,
-        "es_admin": esAdmin
+        "es_admin": esAdmin,
+        "es_centro": esCentro
       }),
     );
 
@@ -73,7 +79,7 @@ class ApiUserService {
 
   // 🔹 Actualizar usuario
   Future<bool> updateUser(String rp, String nombre, int areaId,
-      String contrasenia, bool esAdmin) async {
+      String contrasenia, bool esAdmin, bool esCentro) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
@@ -85,7 +91,8 @@ class ApiUserService {
         "nombre_completo": nombre,
         "area_id": areaId,
         "contrasenia": contrasenia,
-        "es_admin": esAdmin
+        "es_admin": esAdmin,
+        "es_centro": esCentro
       }),
     );
 

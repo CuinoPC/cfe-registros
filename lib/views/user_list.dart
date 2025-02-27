@@ -73,6 +73,7 @@ class _UserListState extends State<UserList> {
                       DataColumn(label: Text("Proceso")),
                       DataColumn(label: Text("Contraseña")),
                       DataColumn(label: Text("Admin")),
+                      DataColumn(label: Text("Jefe de centro")),
                       DataColumn(label: Text("Opciones")),
                     ],
                     rows: _users.asMap().entries.map((entry) {
@@ -113,6 +114,7 @@ class _UserListState extends State<UserList> {
                           ),
                         ),
                         DataCell(Text(user['es_admin'] ? "Sí" : "No")),
+                        DataCell(Text(user['es_centro'] ? "Sí" : "No")),
                         // 🔹 Nueva Celda con Botones de Opciones
                         DataCell(
                           Row(

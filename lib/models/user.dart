@@ -4,6 +4,7 @@ class User {
   final int areaId; // ✅ Ahora el área es un ID (entero)
   final String contrasenia;
   final bool esAdmin;
+  final bool esCentro;
 
   User({
     required this.nombre,
@@ -11,6 +12,7 @@ class User {
     required this.areaId, // ✅ Cambiado a entero
     required this.contrasenia,
     required this.esAdmin,
+    required this.esCentro,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class User {
       areaId: json['area_id'], // ✅ Debe coincidir con la BD
       contrasenia: json['contrasenia'] ?? "No disponible",
       esAdmin: json['es_admin'],
+      esCentro: json['es_centro'],
     );
   }
 }
