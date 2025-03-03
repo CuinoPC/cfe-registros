@@ -2,6 +2,7 @@ import 'package:cfe_registros/services/api_terminales.dart';
 import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddTerminal extends StatefulWidget {
   @override
@@ -15,16 +16,23 @@ class _AddTerminalState extends State<AddTerminal> {
   final TextEditingController modeloController = TextEditingController();
   final TextEditingController serieController = TextEditingController();
   final TextEditingController inventarioController = TextEditingController();
-  final TextEditingController rpeController = TextEditingController();
-  final TextEditingController nombreController = TextEditingController();
 
-  List<Map<String, dynamic>> _usuarios = []; // Lista de usuarios
-  int? _selectedUsuarioId; // ID del usuario seleccionado
+  List<Map<String, dynamic>> _usuarios = [];
+  List<Map<String, dynamic>> _responsables = [];
+  List<Map<String, dynamic>> _usuariosTerminal = [];
+
+  int? _selectedResponsableId;
+  String _selectedResponsableRP = "";
+  String _selectedResponsableNombre = "";
+
+  int? _selectedUsuarioId;
+  bool _esAdmin = false;
 
   @override
   void initState() {
     super.initState();
-    _loadUsuarios(); // Cargar usuarios al iniciar la pantalla
+    _loadUsuarios();
+    _loadAdminStatus(); // ✅ Cargar si el usuario es admin
   }
 
   Future<void> _loadUsuarios() async {
@@ -32,8 +40,20 @@ class _AddTerminalState extends State<AddTerminal> {
     if (usuarios != null) {
       setState(() {
         _usuarios = usuarios;
+        _responsables =
+            usuarios.where((user) => user['es_centro'] == true).toList();
+        _usuariosTerminal =
+            usuarios.where((user) => user['es_centro'] == false).toList();
       });
     }
+  }
+
+  Future<void> _loadAdminStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _esAdmin =
+          prefs.getBool('esAdmin') ?? false; // ✅ Recupera estado de admin
+    });
   }
 
   Future<void> _addTerminal() async {
@@ -41,19 +61,16 @@ class _AddTerminalState extends State<AddTerminal> {
     String modelo = modeloController.text;
     String serie = serieController.text;
     String inventario = inventarioController.text;
-    String rpe = rpeController.text;
-    String nombre = nombreController.text;
 
     if (marca.isEmpty ||
         modelo.isEmpty ||
         serie.isEmpty ||
         inventario.isEmpty ||
-        rpe.isEmpty ||
-        nombre.isEmpty ||
+        (!_esAdmin && _selectedResponsableId == null) ||
         _selectedUsuarioId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Todos los campos son obligatorios"),
+          content: Text("Todos los campos obligatorios"),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -61,7 +78,14 @@ class _AddTerminalState extends State<AddTerminal> {
     }
 
     bool success = await _ApiTerminalService.createTerminal(
-        marca, modelo, serie, inventario, rpe, nombre, _selectedUsuarioId!);
+      marca,
+      modelo,
+      serie,
+      inventario,
+      _selectedResponsableRP,
+      _selectedResponsableNombre,
+      _selectedUsuarioId!,
+    );
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -169,33 +193,48 @@ class _AddTerminalState extends State<AddTerminal> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
-                        controller: rpeController,
-                        decoration: InputDecoration(
-                          labelText: "RPE Responsable",
-                          prefixIcon:
-                              const Icon(Icons.badge, color: Colors.teal),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+
+                      // 🔽 Mostrar campo de Responsable SOLO si el usuario es admin
+                      if (_esAdmin)
+                        Column(
+                          children: [
+                            DropdownButtonFormField<int>(
+                              decoration: InputDecoration(
+                                labelText: "Responsable (Jefe de Centro)",
+                                prefixIcon:
+                                    const Icon(Icons.badge, color: Colors.teal),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              value: _selectedResponsableId,
+                              items: _responsables.map((usuario) {
+                                return DropdownMenuItem<int>(
+                                  value: usuario['id'],
+                                  child: Text(
+                                      "${usuario['nombre_completo']} (RP: ${usuario['rp']})"),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedResponsableId = value;
+                                  var usuario = _responsables.firstWhere(
+                                      (user) => user['id'] == value,
+                                      orElse: () => {});
+                                  _selectedResponsableRP = usuario['rp'] ?? "";
+                                  _selectedResponsableNombre =
+                                      usuario['nombre_completo'] ?? "";
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: nombreController,
-                        decoration: InputDecoration(
-                          labelText: "Nombre Responsable",
-                          prefixIcon:
-                              const Icon(Icons.person, color: Colors.teal),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+
+                      // 🔽 Dropdown para seleccionar el Usuario Terminal
                       DropdownButtonFormField<int>(
                         decoration: InputDecoration(
-                          labelText: "Seleccionar Usuario",
+                          labelText: "Usuario Terminal",
                           prefixIcon: const Icon(Icons.supervisor_account,
                               color: Colors.teal),
                           border: OutlineInputBorder(
@@ -203,7 +242,7 @@ class _AddTerminalState extends State<AddTerminal> {
                           ),
                         ),
                         value: _selectedUsuarioId,
-                        items: _usuarios.map((usuario) {
+                        items: _usuariosTerminal.map((usuario) {
                           return DropdownMenuItem<int>(
                             value: usuario['id'],
                             child: Text(

@@ -29,6 +29,9 @@ class _UpdateUserState extends State<UpdateUser> {
     nombreController.text = widget.user['nombre_completo'];
     contraseniaController.text = widget.user['contrasenia'];
     esAdmin = widget.user['es_admin'];
+    esCentro = widget.user['es_centro']; // ✅ Cargar estado del Jefe de Centro
+
+    _selectedAreaId = widget.user['area_id']; // ✅ Establecer el área al cargar
 
     _fetchAreas();
   }
@@ -146,7 +149,7 @@ class _UpdateUserState extends State<UpdateUser> {
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<int>(
-                        value: _selectedAreaId,
+                        value: _selectedAreaId, // ✅ Cargar área existente
                         items: _areas.map((area) {
                           return DropdownMenuItem<int>(
                             value: area['id'],

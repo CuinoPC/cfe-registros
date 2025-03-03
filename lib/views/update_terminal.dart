@@ -2,6 +2,7 @@ import 'package:cfe_registros/services/api_terminales.dart';
 import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/terminal.dart';
 
 class UpdateTerminal extends StatefulWidget {
@@ -20,13 +21,20 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
   final TextEditingController modeloController = TextEditingController();
   final TextEditingController serieController = TextEditingController();
   final TextEditingController inventarioController = TextEditingController();
-  final TextEditingController rpeController = TextEditingController();
-  final TextEditingController nombreController = TextEditingController();
 
   List<Map<String, dynamic>> _usuarios = [];
   List<Terminal> _terminales = [];
-  int? _selectedUsuarioId;
-  String _selectedArea = ""; // ✅ Nueva variable para el área del usuario
+  List<Map<String, dynamic>> _responsables = []; // Solo jefes de centro
+  List<Map<String, dynamic>> _usuariosTerminal = []; // Solo usuarios terminales
+
+  int? _selectedResponsableId;
+  String _selectedResponsableRP = "";
+  String _selectedResponsableNombre = "";
+  String _selectedArea = "";
+
+  int? _selectedUsuarioId; // Usuario que usará la terminal
+
+  bool _esAdmin = false; // ✅ Estado de admin
 
   @override
   void initState() {
@@ -35,14 +43,21 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
     modeloController.text = widget.terminal.modelo;
     serieController.text = widget.terminal.serie;
     inventarioController.text = widget.terminal.inventario;
-    rpeController.text = widget.terminal.rpeResponsable.toString();
-    nombreController.text = widget.terminal.nombreResponsable;
+    _selectedResponsableId = null;
     _selectedUsuarioId = widget.terminal.usuarioId;
 
     _loadUsuariosYTerminales();
+    _loadAdminStatus(); // ✅ Cargar si el usuario es admin
   }
 
-  // 🔹 Obtener lista de usuarios y terminales
+  Future<void> _loadAdminStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _esAdmin =
+          prefs.getBool('esAdmin') ?? false; // ✅ Recupera estado de admin
+    });
+  }
+
   Future<void> _loadUsuariosYTerminales() async {
     List<Map<String, dynamic>>? usuarios = await _ApiUserService.getUsers();
     List<Terminal>? terminales = await _ApiTerminalService.getTerminales();
@@ -52,11 +67,27 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
         _usuarios = usuarios;
         _terminales = terminales;
         _selectedArea = _getAreaUsuario(widget.terminal.usuarioId);
+
+        // 🔹 Filtrar usuarios responsables (solo los que son "es_centro")
+        _responsables =
+            usuarios.where((user) => user['es_centro'] == true).toList();
+
+        // 🔹 Filtrar usuarios terminal (los que NO son "es_centro")
+        _usuariosTerminal =
+            usuarios.where((user) => user['es_centro'] == false).toList();
+
+        // ✅ Buscar responsable correcto
+        var responsable = _responsables.firstWhere(
+            (user) => user['rp'] == widget.terminal.rpeResponsable,
+            orElse: () => {});
+
+        _selectedResponsableId = responsable['id'];
+        _selectedResponsableRP = responsable['rp'] ?? "";
+        _selectedResponsableNombre = responsable['nombre_completo'] ?? "";
       });
     }
   }
 
-  // 🔹 Obtener el área del usuario
   String _getAreaUsuario(int usuarioId) {
     var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
         orElse: () => {'nom_area': "No disponible"});
@@ -68,14 +99,11 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
     String modelo = modeloController.text;
     String serie = serieController.text;
     String inventario = inventarioController.text;
-    String rpe = rpeController.text;
-    String nombre = nombreController.text;
 
     if (marca.isEmpty ||
         serie.isEmpty ||
         inventario.isEmpty ||
-        rpe.isEmpty ||
-        nombre.isEmpty ||
+        _selectedResponsableId == null ||
         _selectedUsuarioId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -86,25 +114,24 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
       return;
     }
 
-    // ✅ 1. Actualizar la terminal seleccionada
+    // ✅ 1. ACTUALIZAR SOLO LA TERMINAL PRINCIPAL (sin afectar las demás)
     bool success = await _ApiTerminalService.updateTerminal(
       widget.terminal.id,
       marca,
       modelo,
       serie,
       inventario,
-      rpe,
-      nombre,
-      _selectedUsuarioId!,
+      _selectedResponsableRP,
+      _selectedResponsableNombre,
+      _selectedUsuarioId!, // ✅ SOLO esta terminal cambia de usuario terminal
     );
 
-    if (success) {
-      // ✅ 2. Filtrar terminales con el mismo área
+    // ✅ 2. SI SE CAMBIÓ EL RESPONSABLE, ACTUALIZAR LAS TERMINALES RELACIONADAS
+    if (success && (_selectedResponsableRP != widget.terminal.rpeResponsable)) {
       List<Terminal> terminalesRelacionadas = _terminales.where((terminal) {
         return _getAreaUsuario(terminal.usuarioId) == _selectedArea;
       }).toList();
 
-      // ✅ 3. Actualizar todas las terminales con el nuevo RPE y Nombre
       for (var terminal in terminalesRelacionadas) {
         await _ApiTerminalService.updateTerminal(
           terminal.id,
@@ -112,27 +139,21 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
           terminal.modelo,
           terminal.serie,
           terminal.inventario,
-          rpe, // Nuevo RPE
-          nombre, // Nuevo Nombre Responsable
-          terminal.usuarioId,
+          _selectedResponsableRP, // ✅ Cambiar solo el responsable en las demás
+          _selectedResponsableNombre,
+          terminal.usuarioId, // ❌ NO cambiar el usuario terminal en las demás
         );
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Terminal y terminales relacionadas actualizadas"),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.pop(context, true);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Error al actualizar terminal"),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Terminal actualizada correctamente"),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    Navigator.pop(context, true);
   }
 
   @override
@@ -224,41 +245,56 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
-                        controller: rpeController,
-                        decoration: InputDecoration(
-                          labelText: "RPE Responsable",
-                          prefixIcon:
-                              const Icon(Icons.badge, color: Colors.teal),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                      // 🔽 Mostrar campo de Responsable SOLO si el usuario es admin
+                      if (_esAdmin)
+                        Column(
+                          children: [
+                            DropdownButtonFormField<int>(
+                              decoration: InputDecoration(
+                                labelText: "Responsable (Jefe de Centro)",
+                                prefixIcon:
+                                    const Icon(Icons.badge, color: Colors.teal),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              value: _selectedResponsableId,
+                              items: _responsables.map((usuario) {
+                                return DropdownMenuItem<int>(
+                                  value: usuario['id'],
+                                  child: Text(
+                                      "${usuario['nombre_completo']} (RP: ${usuario['rp']})"),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedResponsableId = value;
+                                  var usuario = _responsables.firstWhere(
+                                      (user) => user['id'] == value,
+                                      orElse: () => {});
+                                  _selectedResponsableRP = usuario['rp'] ?? "";
+                                  _selectedResponsableNombre =
+                                      usuario['nombre_completo'] ?? "";
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: nombreController,
-                        decoration: InputDecoration(
-                          labelText: "Nombre Responsable",
-                          prefixIcon:
-                              const Icon(Icons.person, color: Colors.teal),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+
+                      // 🔽 Dropdown para seleccionar el Usuario Terminal
                       DropdownButtonFormField<int>(
                         decoration: InputDecoration(
-                          labelText: "Seleccionar Usuario",
+                          labelText: "Usuario Terminal",
                           prefixIcon: const Icon(Icons.supervisor_account,
                               color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        value: _selectedUsuarioId,
-                        items: _usuarios.map((usuario) {
+                        value:
+                            _selectedUsuarioId, // ✅ Verifica que esté inicializado correctamente
+                        items: _usuariosTerminal.map((usuario) {
                           return DropdownMenuItem<int>(
                             value: usuario['id'],
                             child: Text(
@@ -267,10 +303,13 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                         }).toList(),
                         onChanged: (value) {
                           setState(() {
-                            _selectedUsuarioId = value;
+                            _selectedUsuarioId = value!;
+                            print(
+                                "Nuevo Usuario Terminal ID: $_selectedUsuarioId"); // ✅ Depuración
                           });
                         },
                       ),
+
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: _updateTerminal,
