@@ -57,11 +57,11 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Fotos subidas correctamente")),
       );
-
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error al subir las fotos")),
+        const SnackBar(
+            content: Text("No puedes subir más de 7 fotos en una semana")),
       );
     }
   }

@@ -114,41 +114,39 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
       return;
     }
 
-    // ✅ 1. ACTUALIZAR SOLO LA TERMINAL PRINCIPAL (sin afectar las demás)
+    // ✅ 1. ACTUALIZAR LA TERMINAL PRINCIPAL
     bool success = await _ApiTerminalService.updateTerminal(
       widget.terminal.id,
       marca,
       modelo,
       serie,
       inventario,
-      _selectedResponsableRP,
-      _selectedResponsableNombre,
-      _selectedUsuarioId!, // ✅ SOLO esta terminal cambia de usuario terminal
+      _selectedResponsableRP, // Nuevo RP del responsable
+      _selectedResponsableNombre, // Nuevo nombre del responsable
+      _selectedUsuarioId!, // Usuario terminal
     );
 
-    // ✅ 2. SI SE CAMBIÓ EL RESPONSABLE, ACTUALIZAR LAS TERMINALES RELACIONADAS
+    // ✅ 2. SI EL RESPONSABLE CAMBIÓ, ACTUALIZAR LAS TERMINALES RELACIONADAS
     if (success && (_selectedResponsableRP != widget.terminal.rpeResponsable)) {
-      List<Terminal> terminalesRelacionadas = _terminales.where((terminal) {
-        return _getAreaUsuario(terminal.usuarioId) == _selectedArea;
-      }).toList();
-
-      for (var terminal in terminalesRelacionadas) {
-        await _ApiTerminalService.updateTerminal(
-          terminal.id,
-          terminal.marca,
-          terminal.modelo,
-          terminal.serie,
-          terminal.inventario,
-          _selectedResponsableRP, // ✅ Cambiar solo el responsable en las demás
-          _selectedResponsableNombre,
-          terminal.usuarioId, // ❌ NO cambiar el usuario terminal en las demás
-        );
+      for (var terminal in _terminales) {
+        if (terminal.rpeResponsable == widget.terminal.rpeResponsable) {
+          await _ApiTerminalService.updateTerminal(
+            terminal.id,
+            terminal.marca,
+            terminal.modelo,
+            terminal.serie,
+            terminal.inventario,
+            _selectedResponsableRP, // ✅ Nuevo RP del responsable
+            _selectedResponsableNombre, // ✅ Nuevo nombre del responsable
+            terminal.usuarioId, // ❌ No cambiar el usuario terminal
+          );
+        }
       }
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text("Terminal actualizada correctamente"),
+        content: Text("Terminal y responsables actualizados correctamente"),
         backgroundColor: Colors.green,
       ),
     );

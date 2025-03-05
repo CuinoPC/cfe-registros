@@ -62,8 +62,10 @@ class _TerminalListState extends State<TerminalList> {
             _getNombreUsuario(terminal.usuarioId)
                 .toLowerCase()
                 .contains(_searchQuery) ||
-            _getAreaUsuario(terminal.usuarioId).toLowerCase().contains(
-                _searchQuery); // 🔹 Filtrar también por área del usuario
+            _getAreaResponsablePorRP(terminal.rpeResponsable)
+                .toLowerCase()
+                .contains(
+                    _searchQuery); // 🔹 Filtrar ahora por área del responsable
       }).toList();
     });
   }
@@ -112,11 +114,12 @@ class _TerminalListState extends State<TerminalList> {
     return usuario['rp'].toString();
   }
 
-  // 🔹 Obtener el área del usuario
-  String _getAreaUsuario(int usuarioId) {
-    var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
+  // 🔹 Obtener el área del Responsable
+  String _getAreaResponsablePorRP(String rpResponsable) {
+    var responsable = _usuarios.firstWhere(
+        (user) => user['rp'] == rpResponsable, // Busca por RP
         orElse: () => {'nom_area': "No disponible"});
-    return usuario['nom_area'].toString();
+    return responsable['nom_area'].toString();
   }
 
   Future<void> _deleteTerminal(int id) async {
@@ -314,7 +317,7 @@ class _TerminalListState extends State<TerminalList> {
                       DataColumn(label: Text("Responsable (RPE)")),
                       DataColumn(label: Text("Nombre Responsable")),
                       DataColumn(label: Text("Usuario (RP)")),
-                      DataColumn(label: Text("Área del Usuario")),
+                      DataColumn(label: Text("Área")),
                       DataColumn(label: Text("Fotos")),
                       DataColumn(label: Text("Fotos Nuevas")),
                       DataColumn(label: Text("Opciones")),
@@ -336,8 +339,8 @@ class _TerminalListState extends State<TerminalList> {
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ), // ✅ Nombre del Usuario + RP
-                        DataCell(Text(_getAreaUsuario(
-                            terminal.usuarioId))), // ✅ Área del Usuario
+                        DataCell(Text(
+                            _getAreaResponsablePorRP(terminal.rpeResponsable))),
                         DataCell(
                           TextButton(
                             onPressed: () {
