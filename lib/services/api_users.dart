@@ -18,6 +18,7 @@ class ApiUserService {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', data['token']);
       await prefs.setBool('esAdmin', data['es_admin'] == true);
+      await prefs.setBool('esCentro', data['es_centro'] == true);
       await prefs.setString('nombre_usuario', data['nombre_completo']);
       await prefs.setString('rp', data['rp']);
       return data;

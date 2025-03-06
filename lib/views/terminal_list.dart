@@ -6,6 +6,7 @@ import 'package:cfe_registros/views/upload_photos.dart';
 import 'package:cfe_registros/views/view_photos.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/terminal.dart';
 import 'add_terminal.dart';
 import 'update_terminal.dart';
@@ -24,6 +25,8 @@ class _TerminalListState extends State<TerminalList> {
   bool _isLoading = true;
   String _searchQuery = "";
   String _selectedFilter = "Fecha"; // ✅ Filtro por defecto
+  bool _esCentro = false;
+  bool _esAdmin = false;
 
   @override
   void initState() {
@@ -32,13 +35,32 @@ class _TerminalListState extends State<TerminalList> {
   }
 
   Future<void> _fetchData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool esAdmin = prefs.getBool('esAdmin') ?? false;
+    bool esCentro = prefs.getBool('esCentro') ?? false;
+    String currentUserRP = prefs.getString('rp') ??
+        "No disponible"; // ✅ Obtener RP del usuario logueado
+
     List<Terminal>? terminales = await _ApiTerminalService.getTerminales();
     List<Map<String, dynamic>>? usuariosData = await _ApiUserService.getUsers();
 
     if (terminales != null && usuariosData != null) {
       setState(() {
-        _terminales = terminales;
-        _filteredTerminales = terminales;
+        _esCentro = esCentro;
+        _esAdmin = esAdmin;
+
+        if (_esAdmin) {
+          _terminales = terminales; // ✅ Si es admin, ve todas las terminales
+        } else if (_esCentro) {
+          _terminales = terminales.where((terminal) {
+            return terminal.rpeResponsable ==
+                currentUserRP; // ✅ Filtrar por RP Responsable
+          }).toList();
+        } else {
+          _terminales = [];
+        }
+
+        _filteredTerminales = _terminales;
         _usuarios = usuariosData;
         _isLoading = false;
       });
@@ -46,7 +68,6 @@ class _TerminalListState extends State<TerminalList> {
       setState(() {
         _isLoading = false;
       });
-      print("No hay registros en el historial.");
     }
   }
 
@@ -117,9 +138,16 @@ class _TerminalListState extends State<TerminalList> {
   // 🔹 Obtener el área del Responsable
   String _getAreaResponsablePorRP(String rpResponsable) {
     var responsable = _usuarios.firstWhere(
-        (user) => user['rp'] == rpResponsable, // Busca por RP
+        (user) =>
+            user['rp'].toString().trim().toLowerCase() ==
+            rpResponsable.trim().toLowerCase(),
         orElse: () => {'nom_area': "No disponible"});
-    return responsable['nom_area'].toString();
+
+    String area = responsable['nom_area']?.trim() ?? "No disponible";
+
+    print("🏢 Área obtenida para RP '$rpResponsable' -> '$area'");
+
+    return area;
   }
 
   Future<void> _deleteTerminal(int id) async {
