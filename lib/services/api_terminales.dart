@@ -1,5 +1,6 @@
 import 'package:cfe_registros/models/historial.dart';
 import 'package:cfe_registros/models/terminal.dart';
+import 'package:cfe_registros/models/terminal_danada.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
@@ -173,5 +174,32 @@ class ApiTerminalService {
       print("Error al obtener historial: Código ${response.statusCode}");
       return null;
     }
+  }
+
+  Future<bool> marcarTerminalDanada(
+      int terminalId, String marca, String modelo, String serie) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/terminales/danadas'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "terminalId": terminalId,
+        "marca": marca,
+        "modelo": modelo,
+        "serie": serie,
+      }),
+    );
+
+    return response.statusCode == 201;
+  }
+
+// 🔹 Obtener terminales dañadas
+  Future<List<TerminalDanada>> getTerminalesDanadas() async {
+    final response = await http.get(Uri.parse("$baseUrl/terminales/danadas"));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => TerminalDanada.fromJson(json)).toList();
+    }
+    return [];
   }
 }

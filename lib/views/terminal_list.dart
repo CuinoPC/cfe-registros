@@ -2,6 +2,7 @@ import 'package:cfe_registros/services/api_terminales.dart';
 import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:cfe_registros/views/historial_page.dart';
+import 'package:cfe_registros/views/terminales_danadas.dart';
 import 'package:cfe_registros/views/upload_photos.dart';
 import 'package:cfe_registros/views/view_photos.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ class _TerminalListState extends State<TerminalList> {
   String _selectedFilter = "Fecha"; // ✅ Filtro por defecto
   bool _esCentro = false;
   bool _esAdmin = false;
+  Set<Terminal> _terminalesDanadas = {};
 
   @override
   void initState() {
@@ -145,8 +147,6 @@ class _TerminalListState extends State<TerminalList> {
 
     String area = responsable['nom_area']?.trim() ?? "No disponible";
 
-    print("🏢 Área obtenida para RP '$rpResponsable' -> '$area'");
-
     return area;
   }
 
@@ -192,6 +192,53 @@ class _TerminalListState extends State<TerminalList> {
         builder: (context) => ViewPhotosPage(fotosPorFecha: fotosPorFecha),
       ),
     );
+  }
+
+  void _marcarTerminalDanada(Terminal terminal, bool value) async {
+    setState(() {
+      if (value) {
+        _terminalesDanadas.add(terminal);
+      } else {
+        _terminalesDanadas.remove(terminal);
+      }
+    });
+
+    if (value) {
+      // ✅ Llamar a la API para marcar la terminal dañada
+      bool success = await _ApiTerminalService.marcarTerminalDanada(
+          terminal.id, terminal.marca, terminal.modelo, terminal.serie);
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Terminal marcada como dañada")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error al marcar terminal")),
+        );
+      }
+    }
+  }
+
+// 🔹 Botón para ver las terminales dañadas
+  void _verTerminalesDanadas() {
+    if (_terminalesDanadas.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TerminalesDanadasPage(
+            terminalesDanadas: _terminalesDanadas.toList(),
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("No hay terminales marcadas como dañadas."),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -348,6 +395,7 @@ class _TerminalListState extends State<TerminalList> {
                       DataColumn(label: Text("Área")),
                       DataColumn(label: Text("Fotos")),
                       DataColumn(label: Text("Fotos Nuevas")),
+                      DataColumn(label: Text("Dañada")),
                       DataColumn(label: Text("Opciones")),
                     ],
                     rows: _filteredTerminales.asMap().entries.map((entry) {
@@ -406,6 +454,14 @@ class _TerminalListState extends State<TerminalList> {
                                         fontWeight: FontWeight.bold),
                                   ),
                                 ),
+                        ),
+                        DataCell(
+                          Checkbox(
+                            value: _terminalesDanadas.contains(terminal),
+                            onChanged: (bool? value) {
+                              _marcarTerminalDanada(terminal, value ?? false);
+                            },
+                          ),
                         ),
                         DataCell(
                           Row(

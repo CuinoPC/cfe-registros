@@ -59,6 +59,14 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
   }
 
   Future<void> _loadUsuariosYTerminales() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool esAdmin = prefs.getBool('esAdmin') ?? false;
+    bool esCentro = prefs.getBool('esCentro') ?? false;
+    String currentUserRP = prefs.getString('rp') ?? "No disponible";
+
+    print(
+        "⚡ SharedPreferences -> esAdmin: $esAdmin, esCentro: $esCentro, RP Usuario: $currentUserRP");
+
     List<Map<String, dynamic>>? usuarios = await _ApiUserService.getUsers();
     List<Terminal>? terminales = await _ApiTerminalService.getTerminales();
 
@@ -66,15 +74,35 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
       setState(() {
         _usuarios = usuarios;
         _terminales = terminales;
-        _selectedArea = _getAreaUsuario(widget.terminal.usuarioId);
 
-        // 🔹 Filtrar usuarios responsables (solo los que son "es_centro")
+        // ✅ Obtener el área del usuario logueado (si es jefe de centro)
+        String currentUserArea = "No disponible";
+        var currentUser = usuarios.firstWhere(
+            (user) => user['rp'] == currentUserRP,
+            orElse: () => {'nom_area': "No disponible"});
+        currentUserArea = currentUser['nom_area'] ?? "No disponible";
+
+        // 🔹 Filtrar responsables (solo los que son `es_centro`)
         _responsables =
             usuarios.where((user) => user['es_centro'] == true).toList();
 
-        // 🔹 Filtrar usuarios terminal (los que NO son "es_centro")
-        _usuariosTerminal =
-            usuarios.where((user) => user['es_centro'] == false).toList();
+        // 🔹 Si es admin, inicialmente ver todos los usuarios terminales
+        if (esAdmin) {
+          _usuariosTerminal = usuarios
+              .where((user) =>
+                  user['es_centro'] == false && user['es_admin'] == false)
+              .toList();
+        } else if (esCentro) {
+          // 🔹 Si es jefe de centro, ver solo usuarios terminales de su área
+          _usuariosTerminal = usuarios
+              .where((user) =>
+                  user['es_centro'] == false &&
+                  user['es_admin'] == false &&
+                  user['nom_area'] == currentUserArea)
+              .toList();
+        } else {
+          _usuariosTerminal = [];
+        }
 
         // ✅ Buscar responsable correcto
         var responsable = _responsables.firstWhere(
@@ -84,6 +112,24 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
         _selectedResponsableId = responsable['id'];
         _selectedResponsableRP = responsable['rp'] ?? "";
         _selectedResponsableNombre = responsable['nombre_completo'] ?? "";
+      });
+    }
+  }
+
+  void _filtrarUsuariosPorResponsable() {
+    if (_selectedResponsableId != null) {
+      var responsable = _responsables.firstWhere(
+          (user) => user['id'] == _selectedResponsableId,
+          orElse: () => {});
+      String areaResponsable = responsable['nom_area'] ?? "No disponible";
+
+      setState(() {
+        _usuariosTerminal = _usuarios
+            .where((user) =>
+                user['es_centro'] == false &&
+                user['es_admin'] == false &&
+                user['nom_area'] == areaResponsable)
+            .toList();
       });
     }
   }
@@ -256,7 +302,10 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              value: _selectedResponsableId,
+                              value: _responsables.any((user) =>
+                                      user['id'] == _selectedResponsableId)
+                                  ? _selectedResponsableId
+                                  : null, // ✅ Evita error si el ID no está en la lista
                               items: _responsables.map((usuario) {
                                 return DropdownMenuItem<int>(
                                   value: usuario['id'],
@@ -274,12 +323,13 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                                   _selectedResponsableNombre =
                                       usuario['nombre_completo'] ?? "";
                                 });
+
+                                _filtrarUsuariosPorResponsable(); // 🔥 Filtrar usuarios terminales cuando cambie el responsable
                               },
                             ),
                             const SizedBox(height: 16),
                           ],
                         ),
-
                       // 🔽 Dropdown para seleccionar el Usuario Terminal
                       DropdownButtonFormField<int>(
                         decoration: InputDecoration(
@@ -290,8 +340,10 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        value:
-                            _selectedUsuarioId, // ✅ Verifica que esté inicializado correctamente
+                        value: _usuariosTerminal
+                                .any((user) => user['id'] == _selectedUsuarioId)
+                            ? _selectedUsuarioId
+                            : null, // ✅ Evita error si el ID no está en la lista
                         items: _usuariosTerminal.map((usuario) {
                           return DropdownMenuItem<int>(
                             value: usuario['id'],
@@ -302,8 +354,6 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                         onChanged: (value) {
                           setState(() {
                             _selectedUsuarioId = value!;
-                            print(
-                                "Nuevo Usuario Terminal ID: $_selectedUsuarioId"); // ✅ Depuración
                           });
                         },
                       ),

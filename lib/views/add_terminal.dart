@@ -36,14 +36,53 @@ class _AddTerminalState extends State<AddTerminal> {
   }
 
   Future<void> _loadUsuarios() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool esAdmin = prefs.getBool('esAdmin') ?? false;
+    bool esCentro = prefs.getBool('esCentro') ?? false;
+    String currentUserRP = prefs.getString('rp') ?? "No disponible";
+
+    print(
+        "⚡ SharedPreferences -> esAdmin: $esAdmin, esCentro: $esCentro, RP Usuario: $currentUserRP");
+
     List<Map<String, dynamic>>? usuarios = await _ApiUserService.getUsers();
+
     if (usuarios != null) {
       setState(() {
         _usuarios = usuarios;
+
+        // 🔹 Filtrar responsables (solo los que son `es_centro`)
         _responsables =
             usuarios.where((user) => user['es_centro'] == true).toList();
-        _usuariosTerminal =
-            usuarios.where((user) => user['es_centro'] == false).toList();
+
+        // 🔹 Si es admin, ver todos los usuarios terminales
+        if (esAdmin) {
+          _usuariosTerminal = usuarios
+              .where((user) =>
+                  user['es_centro'] == false && user['es_admin'] == false)
+              .toList();
+        } else {
+          // ✅ Si NO es admin, solo mostrar usuarios terminales del área del responsable seleccionado
+          _usuariosTerminal = [];
+        }
+      });
+    }
+  }
+
+  // 🔹 Filtrar usuarios terminales cuando cambie el responsable
+  void _filtrarUsuariosPorResponsable() {
+    if (_selectedResponsableId != null) {
+      var responsable = _responsables.firstWhere(
+          (user) => user['id'] == _selectedResponsableId,
+          orElse: () => {});
+      String areaResponsable = responsable['nom_area'] ?? "No disponible";
+
+      setState(() {
+        _usuariosTerminal = _usuarios
+            .where((user) =>
+                user['es_centro'] == false &&
+                user['es_admin'] == false &&
+                user['nom_area'] == areaResponsable)
+            .toList();
       });
     }
   }
@@ -225,6 +264,8 @@ class _AddTerminalState extends State<AddTerminal> {
                                   _selectedResponsableNombre =
                                       usuario['nombre_completo'] ?? "";
                                 });
+
+                                _filtrarUsuariosPorResponsable(); // 🔥 Filtrar usuarios terminales cuando cambie el responsable
                               },
                             ),
                             const SizedBox(height: 16),
