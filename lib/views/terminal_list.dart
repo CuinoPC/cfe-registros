@@ -1,3 +1,4 @@
+import 'package:cfe_registros/models/terminal_danada.dart';
 import 'package:cfe_registros/services/api_terminales.dart';
 import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
@@ -40,11 +41,12 @@ class _TerminalListState extends State<TerminalList> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool esAdmin = prefs.getBool('esAdmin') ?? false;
     bool esCentro = prefs.getBool('esCentro') ?? false;
-    String currentUserRP = prefs.getString('rp') ??
-        "No disponible"; // ✅ Obtener RP del usuario logueado
+    String currentUserRP = prefs.getString('rp') ?? "No disponible";
 
     List<Terminal>? terminales = await _ApiTerminalService.getTerminales();
     List<Map<String, dynamic>>? usuariosData = await _ApiUserService.getUsers();
+    List<TerminalDanada> terminalesDanadas =
+        await _ApiTerminalService.getTerminalesDanadas();
 
     if (terminales != null && usuariosData != null) {
       setState(() {
@@ -52,11 +54,10 @@ class _TerminalListState extends State<TerminalList> {
         _esAdmin = esAdmin;
 
         if (_esAdmin) {
-          _terminales = terminales; // ✅ Si es admin, ve todas las terminales
+          _terminales = terminales;
         } else if (_esCentro) {
           _terminales = terminales.where((terminal) {
-            return terminal.rpeResponsable ==
-                currentUserRP; // ✅ Filtrar por RP Responsable
+            return terminal.rpeResponsable == currentUserRP;
           }).toList();
         } else {
           _terminales = [];
@@ -66,6 +67,24 @@ class _TerminalListState extends State<TerminalList> {
         _usuarios = usuariosData;
         _isLoading = false;
       });
+
+      _terminalesDanadas.clear();
+      for (var terminal in _terminales) {
+        bool sigueDanada =
+            terminalesDanadas.any((t) => t.serie == terminal.serie);
+        String? fechaReparacion =
+            prefs.getString('terminal_reparada_${terminal.serie}');
+
+        // 🔹 La terminal sigue apareciendo en la lista de terminales dañadas
+        if (sigueDanada) {
+          _terminalesDanadas.add(terminal);
+        }
+
+        // 🔹 Si tiene fecha de reparación, solo desmarcamos la casilla (sin eliminarla de la lista)
+        if (fechaReparacion != null) {
+          _terminalesDanadas.remove(terminal);
+        }
+      }
     } else {
       setState(() {
         _isLoading = false;
@@ -195,6 +214,13 @@ class _TerminalListState extends State<TerminalList> {
   }
 
   void _marcarTerminalDanada(Terminal terminal, bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    if (value) {
+      // 🔹 Si el usuario vuelve a marcar la casilla, eliminamos la fecha de reparación guardada
+      await prefs.remove('terminal_reparada_${terminal.serie}');
+    }
+
     setState(() {
       if (value) {
         _terminalesDanadas.add(terminal);
@@ -204,40 +230,27 @@ class _TerminalListState extends State<TerminalList> {
     });
 
     if (value) {
-      // ✅ Llamar a la API para marcar la terminal dañada
       bool success = await _ApiTerminalService.marcarTerminalDanada(
           terminal.id, terminal.marca, terminal.modelo, terminal.serie);
 
       if (success) {
+        // ✅ Mostrar mensaje de éxito
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Terminal marcada como dañada")),
+          const SnackBar(
+            content: Text("Terminal dañada guardada exitosamente"),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error al marcar terminal")),
+          const SnackBar(
+            content: Text("Error al marcar terminal como dañada"),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
         );
       }
-    }
-  }
-
-// 🔹 Botón para ver las terminales dañadas
-  void _verTerminalesDanadas() {
-    if (_terminalesDanadas.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TerminalesDanadasPage(
-            terminalesDanadas: _terminalesDanadas.toList(),
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("No hay terminales marcadas como dañadas."),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -249,12 +262,12 @@ class _TerminalListState extends State<TerminalList> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                // 📌 Encabezado con título, búsqueda y filtros
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Column(
                     children: [
-                      // ✅ Encabezado con título y botón de historial
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -287,31 +300,29 @@ class _TerminalListState extends State<TerminalList> {
                       ),
                       const SizedBox(height: 10),
 
-                      // 🔍 Barra de búsqueda con diseño mejorado
+                      // 🔍 Barra de búsqueda
                       TextField(
                         onChanged: _filterSearchResults,
                         decoration: InputDecoration(
                           labelText: "Buscar...",
-                          prefixIcon: const Icon(Icons.search,
-                              color: Colors.teal), // Ícono de búsqueda
+                          prefixIcon:
+                              const Icon(Icons.search, color: Colors.teal),
                           filled: true,
-                          fillColor: Colors.teal.shade50, // Fondo sutil
+                          fillColor: Colors.teal.shade50,
                           border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.circular(12), // Bordes redondeados
-                            borderSide: BorderSide.none, // Sin bordes duros
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                                color: Colors.teal,
-                                width: 2), // Borde resaltado
+                            borderSide:
+                                const BorderSide(color: Colors.teal, width: 2),
                           ),
                         ),
                       ),
                       const SizedBox(height: 10),
 
-                      // 🔽 Filtro de Orden con diseño mejorado
+                      // 🔽 Filtro de orden
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -324,18 +335,16 @@ class _TerminalListState extends State<TerminalList> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 5),
                             decoration: BoxDecoration(
-                              color: Colors.teal.shade50, // Fondo suave
-                              borderRadius: BorderRadius.circular(
-                                  12), // Bordes redondeados
-                              border: Border.all(
-                                  color: Colors.teal,
-                                  width: 1.5), // Borde delgado
+                              color: Colors.teal.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border:
+                                  Border.all(color: Colors.teal, width: 1.5),
                             ),
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton<String>(
                                 value: _selectedFilter,
                                 icon: const Icon(Icons.filter_list,
-                                    color: Colors.teal), // Ícono de filtro
+                                    color: Colors.teal),
                                 style: const TextStyle(
                                   color: Colors.black87,
                                   fontWeight: FontWeight.bold,
@@ -375,124 +384,128 @@ class _TerminalListState extends State<TerminalList> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 10),
                 Expanded(
-                  child: DataTable2(
-                    columnSpacing: 12,
-                    horizontalMargin: 12,
-                    minWidth: 900,
-                    headingRowColor: MaterialStateColor.resolveWith(
-                        (states) => Colors.teal.shade100),
-                    border: TableBorder.all(color: Colors.grey),
-                    columns: const [
-                      DataColumn(label: Text("#")),
-                      DataColumn(label: Text("Marca")),
-                      DataColumn(label: Text("Modelo")),
-                      DataColumn(label: Text("Serie")),
-                      DataColumn(label: Text("Inventario")),
-                      DataColumn(label: Text("Responsable (RPE)")),
-                      DataColumn(label: Text("Nombre Responsable")),
-                      DataColumn(label: Text("Usuario (RP)")),
-                      DataColumn(label: Text("Área")),
-                      DataColumn(label: Text("Fotos")),
-                      DataColumn(label: Text("Fotos Nuevas")),
-                      DataColumn(label: Text("Dañada")),
-                      DataColumn(label: Text("Opciones")),
-                    ],
-                    rows: _filteredTerminales.asMap().entries.map((entry) {
-                      int index = entry.key + 1;
-                      Terminal terminal = entry.value;
-                      return DataRow(cells: [
-                        DataCell(Text(index.toString())),
-                        DataCell(Text(terminal.marca)),
-                        DataCell(Text(terminal.modelo)),
-                        DataCell(Text(terminal.serie)),
-                        DataCell(Text(terminal.inventario)),
-                        DataCell(Text(terminal.rpeResponsable.toString())),
-                        DataCell(Text(terminal.nombreResponsable)),
-                        DataCell(
-                          Text(
-                            "${_getNombreUsuario(terminal.usuarioId)} (RP: ${_getRpUsuario(terminal.usuarioId)})",
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: DataTable2(
+                      columnSpacing: 12,
+                      horizontalMargin: 12,
+                      minWidth: 1200,
+                      headingRowColor: MaterialStateColor.resolveWith(
+                          (states) => Colors.teal.shade100),
+                      border: TableBorder.all(color: Colors.grey),
+                      columns: const [
+                        DataColumn(label: Text("#")),
+                        DataColumn(label: Text("Marca")),
+                        DataColumn(label: Text("Modelo")),
+                        DataColumn(label: Text("Serie")),
+                        DataColumn(label: Text("Inventario")),
+                        DataColumn(label: Text("Responsable (RPE)")),
+                        DataColumn(label: Text("Nombre Responsable")),
+                        DataColumn(label: Text("Usuario (RP)")),
+                        DataColumn(label: Text("Área")),
+                        DataColumn(label: Text("Fotos")),
+                        DataColumn(label: Text("Fotos Nuevas")),
+                        DataColumn(label: Text("Dañada")),
+                        DataColumn(label: Text("Opciones")),
+                      ],
+                      rows: _filteredTerminales.asMap().entries.map((entry) {
+                        int index = entry.key + 1;
+                        Terminal terminal = entry.value;
+                        return DataRow(cells: [
+                          DataCell(Text(index.toString())),
+                          DataCell(Text(terminal.marca)),
+                          DataCell(Text(terminal.modelo)),
+                          DataCell(Text(terminal.serie)),
+                          DataCell(Text(terminal.inventario)),
+                          DataCell(Text(terminal.rpeResponsable.toString())),
+                          DataCell(Text(terminal.nombreResponsable)),
+                          DataCell(
+                            Text(
+                              "${_getNombreUsuario(terminal.usuarioId)} (RP: ${_getRpUsuario(terminal.usuarioId)})",
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
                           ),
-                        ), // ✅ Nombre del Usuario + RP
-                        DataCell(Text(
-                            _getAreaResponsablePorRP(terminal.rpeResponsable))),
-                        DataCell(
-                          TextButton(
-                            onPressed: () {
-                              if (terminal.fotos.isNotEmpty) {
-                                _navigateToViewPhotos(terminal.fotos);
-                              } else {
-                                _navigateToUploadPhotos(terminal.id);
-                              }
-                            },
-                            child: Text(
-                              terminal.fotos.isNotEmpty
-                                  ? "Ver Fotos"
-                                  : "Cargar Fotos",
-                              style: TextStyle(
-                                color: terminal.fotos.isNotEmpty
-                                    ? Colors.green
-                                    : Colors.blue,
-                                fontWeight: FontWeight.bold,
+                          DataCell(Text(_getAreaResponsablePorRP(
+                              terminal.rpeResponsable))),
+                          DataCell(
+                            TextButton(
+                              onPressed: () {
+                                if (terminal.fotos.isNotEmpty) {
+                                  _navigateToViewPhotos(terminal.fotos);
+                                } else {
+                                  _navigateToUploadPhotos(terminal.id);
+                                }
+                              },
+                              child: Text(
+                                terminal.fotos.isNotEmpty
+                                    ? "Ver Fotos"
+                                    : "Cargar Fotos",
+                                style: TextStyle(
+                                  color: terminal.fotos.isNotEmpty
+                                      ? Colors.green
+                                      : Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        DataCell(
-                          terminal.fotos.isEmpty
-                              ? const Text(
-                                  "-") // ✅ Si no hay fotos, mostrar "-"
-                              : TextButton(
-                                  onPressed: () {
-                                    _navigateToUploadPhotos(terminal.id);
-                                  },
-                                  child: const Text(
-                                    "Cargar Fotos Nuevas",
-                                    style: TextStyle(
-                                        color: Colors.orange,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                        ),
-                        DataCell(
-                          Checkbox(
-                            value: _terminalesDanadas.contains(terminal),
-                            onChanged: (bool? value) {
-                              _marcarTerminalDanada(terminal, value ?? false);
-                            },
-                          ),
-                        ),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          UpdateTerminal(terminal: terminal),
+                          DataCell(
+                            terminal.fotos.isEmpty
+                                ? const Text("-")
+                                : TextButton(
+                                    onPressed: () {
+                                      _navigateToUploadPhotos(terminal.id);
+                                    },
+                                    child: const Text(
+                                      "Cargar Fotos Nuevas",
+                                      style: TextStyle(
+                                          color: Colors.orange,
+                                          fontWeight: FontWeight.bold),
                                     ),
-                                  ).then((updated) {
-                                    if (updated == true) _fetchData();
-                                  });
-                                },
-                              ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () {
-                                  _deleteTerminal(terminal.id);
-                                },
-                              ),
-                            ],
+                                  ),
                           ),
-                        ),
-                      ]);
-                    }).toList(),
+                          DataCell(
+                            Checkbox(
+                              value: _terminalesDanadas.contains(terminal),
+                              onChanged: (bool? value) {
+                                _marcarTerminalDanada(terminal, value ?? false);
+                              },
+                            ),
+                          ),
+                          DataCell(
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit,
+                                      color: Colors.blue),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            UpdateTerminal(terminal: terminal),
+                                      ),
+                                    ).then((updated) {
+                                      if (updated == true) _fetchData();
+                                    });
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.red),
+                                  onPressed: () {
+                                    _deleteTerminal(terminal.id);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ]);
+                      }).toList(),
+                    ),
                   ),
                 ),
               ],

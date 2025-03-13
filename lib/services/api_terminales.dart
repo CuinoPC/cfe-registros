@@ -178,9 +178,20 @@ class ApiTerminalService {
 
   Future<bool> marcarTerminalDanada(
       int terminalId, String marca, String modelo, String serie) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token =
+        prefs.getString('token'); // 🔹 Obtener token de autenticación
+
+    if (token == null) {
+      return false;
+    }
+
     final response = await http.post(
       Uri.parse('$baseUrl/terminales/danadas'),
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token // 🔹 Ahora sí enviamos el token correcto
+      },
       body: jsonEncode({
         "terminalId": terminalId,
         "marca": marca,
@@ -189,17 +200,68 @@ class ApiTerminalService {
       }),
     );
 
-    return response.statusCode == 201;
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
 // 🔹 Obtener terminales dañadas
   Future<List<TerminalDanada>> getTerminalesDanadas() async {
-    final response = await http.get(Uri.parse("$baseUrl/terminales/danadas"));
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token'); // 🔹 Obtener el token almacenado
+
+    if (token == null) {
+      return [];
+    }
+
+    final response = await http.get(
+      Uri.parse("$baseUrl/terminales/danadas"),
+      headers: {
+        "Authorization": token, // 🔹 Enviar token en la cabecera
+      },
+    );
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => TerminalDanada.fromJson(json)).toList();
+    } else {
+      return [];
     }
-    return [];
+  }
+
+  Future<void> updateTerminalDanada(TerminalDanada terminal) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token =
+        prefs.getString('token'); // 📌 Obtener el token de autenticación
+
+    if (token == null) {
+      throw Exception("No hay token de autenticación");
+    }
+
+    final url = Uri.parse('$baseUrl/terminales/danadas/${terminal.id}');
+
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token, // 📌 Aquí agregamos el token correctamente
+      },
+      body: jsonEncode({
+        'fechaReporte': terminal.fechaReporte,
+        'fechaGuia': terminal.fechaGuia,
+        'fechaDiagnostico': terminal.fechaDiagnostico,
+        'fechaAutorizacion': terminal.fechaAutorizacion,
+        'fechaReparacion': terminal.fechaReparacion,
+        'diasReparacion': terminal.diasReparacion,
+        'costo': terminal.costo,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Error al actualizar la terminal dañada: ${response.body}');
+    }
   }
 }
