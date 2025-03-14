@@ -1,6 +1,7 @@
 import 'package:cfe_registros/models/terminal_danada.dart';
 import 'package:cfe_registros/services/api_terminales.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
+import 'package:cfe_registros/views/terminales_costo.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // 📌 Importamos para formatear fechas
@@ -18,8 +19,11 @@ class TerminalesDanadasPage extends StatefulWidget {
 
 class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
   List<TerminalDanada> _terminalesDanadas = [];
+  List<TerminalDanada> _filteredTerminalesDanadas = [];
   final ApiTerminalService _apiService = ApiTerminalService();
   bool _isLoading = true;
+  String _searchQuery = "";
+  String _selectedFilter = "Fecha Reporte";
 
   @override
   void initState() {
@@ -31,7 +35,50 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
     List<TerminalDanada> terminales = await _apiService.getTerminalesDanadas();
     setState(() {
       _terminalesDanadas = terminales;
+      _filteredTerminalesDanadas = terminales;
       _isLoading = false;
+    });
+  }
+
+  /// 🔍 **Filtrar la lista según el texto de búsqueda**
+  void _filterSearchResults(String query) {
+    setState(() {
+      _searchQuery = query.toLowerCase();
+      _filteredTerminalesDanadas = _terminalesDanadas.where((terminal) {
+        return terminal.marca.toLowerCase().contains(_searchQuery) ||
+            terminal.modelo.toLowerCase().contains(_searchQuery) ||
+            terminal.serie.toLowerCase().contains(_searchQuery) ||
+            (terminal.fechaReporte?.toLowerCase() ?? "")
+                .contains(_searchQuery) ||
+            (terminal.fechaReparacion?.toLowerCase() ?? "")
+                .contains(_searchQuery);
+      }).toList();
+    });
+  }
+
+  /// 🔽 **Ordenar la lista según el filtro seleccionado**
+  void _sortBySelectedFilter() {
+    setState(() {
+      switch (_selectedFilter) {
+        case "Marca":
+          _filteredTerminalesDanadas.sort((a, b) => a.marca.compareTo(b.marca));
+          break;
+        case "Modelo":
+          _filteredTerminalesDanadas
+              .sort((a, b) => a.modelo.compareTo(b.modelo));
+          break;
+        case "Serie":
+          _filteredTerminalesDanadas.sort((a, b) => a.serie.compareTo(b.serie));
+          break;
+        case "Fecha Reporte":
+          _filteredTerminalesDanadas.sort(
+              (a, b) => (b.fechaReporte ?? "").compareTo(a.fechaReporte ?? ""));
+          break;
+        case "Fecha Reparación":
+          _filteredTerminalesDanadas.sort((a, b) =>
+              (b.fechaReparacion ?? "").compareTo(a.fechaReparacion ?? ""));
+          break;
+      }
     });
   }
 
@@ -100,53 +147,189 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
           ? const Center(child: CircularProgressIndicator())
           : _terminalesDanadas.isEmpty
               ? const Center(child: Text("No hay terminales dañadas."))
-              : Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: DataTable2(
-                    columnSpacing: 12,
-                    horizontalMargin: 12,
-                    minWidth: 1200,
-                    headingRowColor: MaterialStateColor.resolveWith(
-                        (states) => Colors.teal.shade100),
-                    border: TableBorder.all(color: Colors.grey),
-                    columns: const [
-                      DataColumn(
-                          label: Text("#")), // 📌 Nueva columna para numeración
-                      DataColumn(label: Text("Marca")),
-                      DataColumn(label: Text("Modelo")),
-                      DataColumn(label: Text("Serie")),
-                      DataColumn(label: Text("Fecha Reporte")),
-                      DataColumn(label: Text("Fecha Guía")),
-                      DataColumn(label: Text("Fecha Diagnóstico")),
-                      DataColumn(label: Text("Fecha Autorización")),
-                      DataColumn(label: Text("Fecha Reparación")),
-                      DataColumn(label: Text("Días de Reparación")),
-                      DataColumn(label: Text("Costo")),
-                    ],
-                    rows: List.generate(_terminalesDanadas.length, (index) {
-                      final terminal = _terminalesDanadas[index];
-                      return DataRow(cells: [
-                        DataCell(
-                            Text("${index + 1}")), // 📌 Numeración de filas
-                        DataCell(Text(terminal.marca)),
-                        DataCell(Text(terminal.modelo)),
-                        DataCell(Text(terminal.serie)),
+              : Column(
+                  children: [
+                    // 📌 **Encabezado con título, costos, búsqueda y filtros**
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Lista de Terminales Dañadas",
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              Row(
+                                children: [
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                CostosTerminalesPage()),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.attach_money,
+                                        color: Colors.white),
+                                    label: const Text("Costos"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.teal,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 10),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            onChanged: _filterSearchResults,
+                            decoration: InputDecoration(
+                              labelText: "Buscar...",
+                              prefixIcon:
+                                  const Icon(Icons.search, color: Colors.teal),
+                              filled: true,
+                              fillColor: Colors.teal.shade50,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                    color: Colors.teal, width: 2),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
 
-                        /// 📌 Casillas editables de fechas con DatePicker e ícono de calendario
-                        _buildEditableDateCell(terminal, "fechaReporte"),
-                        _buildEditableDateCell(terminal, "fechaGuia"),
-                        _buildEditableDateCell(terminal, "fechaDiagnostico"),
-                        _buildEditableDateCell(terminal, "fechaAutorizacion"),
-                        _buildEditableDateCell(terminal, "fechaReparacion"),
+                          // 🔽 **Filtro de orden**
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Ordenar por:",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.teal.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                      color: Colors.teal, width: 1.5),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: _selectedFilter,
+                                    icon: const Icon(Icons.filter_list,
+                                        color: Colors.teal),
+                                    style: const TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14),
+                                    dropdownColor: Colors.white,
+                                    items: [
+                                      "Fecha Reporte",
+                                      "Fecha Reparación",
+                                      "Marca",
+                                      "Modelo",
+                                      "Serie"
+                                    ]
+                                        .map((String value) => DropdownMenuItem(
+                                              value: value,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 5),
+                                                child: Text(value),
+                                              ),
+                                            ))
+                                        .toList(),
+                                    onChanged: (String? newValue) {
+                                      if (newValue != null) {
+                                        setState(() {
+                                          _selectedFilter = newValue;
+                                          _sortBySelectedFilter();
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: DataTable2(
+                          columnSpacing: 12,
+                          horizontalMargin: 12,
+                          minWidth: 1200,
+                          headingRowColor: MaterialStateColor.resolveWith(
+                              (states) => Colors.teal.shade100),
+                          border: TableBorder.all(color: Colors.grey),
+                          columns: const [
+                            DataColumn(
+                                label: Text(
+                                    "#")), // 📌 Nueva columna para numeración
+                            DataColumn(label: Text("Marca")),
+                            DataColumn(label: Text("Modelo")),
+                            DataColumn(label: Text("Serie")),
+                            DataColumn(label: Text("Fecha Reporte")),
+                            DataColumn(label: Text("Fecha Guía")),
+                            DataColumn(label: Text("Fecha Diagnóstico")),
+                            DataColumn(label: Text("Fecha Autorización")),
+                            DataColumn(label: Text("Fecha Reparación")),
+                            DataColumn(label: Text("Días de Reparación")),
+                            DataColumn(label: Text("Costo")),
+                          ],
+                          rows: List.generate(_filteredTerminalesDanadas.length,
+                              (index) {
+                            final terminal = _filteredTerminalesDanadas[index];
+                            return DataRow(cells: [
+                              DataCell(Text(
+                                  "${index + 1}")), // 📌 Numeración de filas
+                              DataCell(Text(terminal.marca)),
+                              DataCell(Text(terminal.modelo)),
+                              DataCell(Text(terminal.serie)),
 
-                        /// 📌 Casilla editable para "Días de Reparación"
-                        _buildEditableNumberCell(terminal, "diasReparacion"),
+                              /// 📌 Casillas editables de fechas con DatePicker e ícono de calendario
+                              _buildEditableDateCell(terminal, "fechaReporte"),
+                              _buildEditableDateCell(terminal, "fechaGuia"),
+                              _buildEditableDateCell(
+                                  terminal, "fechaDiagnostico"),
+                              _buildEditableDateCell(
+                                  terminal, "fechaAutorizacion"),
+                              _buildEditableDateCell(
+                                  terminal, "fechaReparacion"),
 
-                        /// 📌 Casilla editable para "Costo"
-                        _buildEditableNumberCell(terminal, "costo"),
-                      ]);
-                    }),
-                  ),
+                              _buildDiasReparacionCell(terminal),
+
+                              /// 📌 Casilla editable para "Costo"
+                              _buildEditableNumberCell(terminal, "costo"),
+                            ]);
+                          }),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
     );
   }
@@ -163,20 +346,43 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
     return DataCell(
       InkWell(
         onTap: () => _selectDate(context, terminal, field),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.calendar_today, size: 18, color: Colors.teal),
-            const SizedBox(width: 5),
-            Text(
-              formattedFecha,
-              style: const TextStyle(
-                color: Colors.teal,
-                fontWeight: FontWeight.bold,
-                decoration: TextDecoration.none,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            bool showText = MediaQuery.of(context).size.width >
+                700; // 📌 Si la pantalla es grande, mostrar la fecha
+
+            return Container(
+              width: constraints
+                  .maxWidth, // 📌 Asegura que el contenido no se desborde
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.calendar_today, size: 18, color: Colors.teal),
+                  if (showText) // 📌 Si la pantalla es grande, mostrar la fecha
+                    Expanded(
+                      // 📌 Asegura que el texto se ajuste sin desbordar
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: Text(
+                          formattedFecha,
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow
+                              .ellipsis, // 📌 Evita que la fecha se desborde
+                          softWrap:
+                              false, // 📌 Evita que la fecha haga salto de línea
+                          style: const TextStyle(
+                            color: Colors.teal,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -206,5 +412,31 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
         },
       ),
     );
+  }
+
+  DataCell _buildDiasReparacionCell(TerminalDanada terminal) {
+    int diasReparacion = _calcularDiasReparacion(
+        terminal.fechaReporte, terminal.fechaReparacion);
+
+    return DataCell(
+      Text(
+        diasReparacion >= 0 ? diasReparacion.toString() : "-",
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  /// 📌 Método para calcular los días de reparación
+  int _calcularDiasReparacion(String? fechaReporte, String? fechaReparacion) {
+    if (fechaReporte == null || fechaReparacion == null) return -1;
+
+    try {
+      DateTime reporte = DateTime.parse(fechaReporte);
+      DateTime reparacion = DateTime.parse(fechaReparacion);
+      return reparacion.difference(reporte).inDays;
+    } catch (e) {
+      print("Error al calcular días de reparación: $e");
+      return -1;
+    }
   }
 }
