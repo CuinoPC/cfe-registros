@@ -310,7 +310,8 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                                 return DropdownMenuItem<int>(
                                   value: usuario['id'],
                                   child: Text(
-                                      "${usuario['nombre_completo']} (RP: ${usuario['rp']})"),
+                                    "${usuario['nombre_completo']} - ${usuario['nom_area']}", // ✅ Ahora muestra el Área en lugar del RP
+                                  ),
                                 );
                               }).toList(),
                               onChanged: (value) {

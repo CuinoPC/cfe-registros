@@ -4,6 +4,7 @@ class TerminalDanada {
   final String marca;
   final String modelo;
   final String serie;
+  final String inventario;
   String? fechaReporte;
   String? fechaGuia;
   String? fechaDiagnostico;
@@ -18,6 +19,7 @@ class TerminalDanada {
     required this.marca,
     required this.modelo,
     required this.serie,
+    required this.inventario,
     this.fechaReporte,
     this.fechaGuia,
     this.fechaDiagnostico,
@@ -35,6 +37,7 @@ class TerminalDanada {
       "marca": marca,
       "modelo": modelo,
       "serie": serie,
+      "inventario": inventario,
       "fechaReporte": fechaReporte,
       "fechaGuia": fechaGuia,
       "fechaDiagnostico": fechaDiagnostico,
@@ -53,6 +56,7 @@ class TerminalDanada {
       marca: json['marca'],
       modelo: json['modelo'],
       serie: json['serie'],
+      inventario: json['inventario'],
       fechaReporte: json['fecha_reporte'],
       fechaGuia: json['fecha_guia'],
       fechaDiagnostico: json['fecha_diagnostico'],

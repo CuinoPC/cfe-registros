@@ -40,19 +40,27 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
     });
   }
 
-  /// 🔍 **Filtrar la lista según el texto de búsqueda**
+  /// 🔍 **Filtrar la lista según el texto de búsqueda (coincidencias exactas)**
   void _filterSearchResults(String query) {
     setState(() {
-      _searchQuery = query.toLowerCase();
-      _filteredTerminalesDanadas = _terminalesDanadas.where((terminal) {
-        return terminal.marca.toLowerCase().contains(_searchQuery) ||
-            terminal.modelo.toLowerCase().contains(_searchQuery) ||
-            terminal.serie.toLowerCase().contains(_searchQuery) ||
-            (terminal.fechaReporte?.toLowerCase() ?? "")
-                .contains(_searchQuery) ||
-            (terminal.fechaReparacion?.toLowerCase() ?? "")
-                .contains(_searchQuery);
-      }).toList();
+      _searchQuery = query.trim().toLowerCase();
+
+      if (_searchQuery.isEmpty) {
+        // ✅ Si el campo de búsqueda está vacío, restaurar todos los registros
+        _filteredTerminalesDanadas = List.from(_terminalesDanadas);
+      } else {
+        // ✅ Buscar solo coincidencias exactas
+        _filteredTerminalesDanadas = _terminalesDanadas.where((terminal) {
+          return terminal.marca.trim().toLowerCase() == _searchQuery ||
+              terminal.modelo.trim().toLowerCase() == _searchQuery ||
+              terminal.serie.trim().toLowerCase() == _searchQuery ||
+              terminal.inventario.trim().toLowerCase() == _searchQuery ||
+              (terminal.fechaReporte?.trim().toLowerCase() ?? "") ==
+                  _searchQuery ||
+              (terminal.fechaReparacion?.trim().toLowerCase() ?? "") ==
+                  _searchQuery;
+        }).toList();
+      }
     });
   }
 
@@ -69,6 +77,10 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
           break;
         case "Serie":
           _filteredTerminalesDanadas.sort((a, b) => a.serie.compareTo(b.serie));
+          break;
+        case "Inventario":
+          _filteredTerminalesDanadas
+              .sort((a, b) => a.inventario.compareTo(b.inventario));
           break;
         case "Fecha Reporte":
           _filteredTerminalesDanadas.sort(
@@ -246,7 +258,8 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                                       "Fecha Reparación",
                                       "Marca",
                                       "Modelo",
-                                      "Serie"
+                                      "Serie",
+                                      "Inventario"
                                     ]
                                         .map((String value) => DropdownMenuItem(
                                               value: value,
@@ -292,6 +305,7 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                             DataColumn(label: Text("Marca")),
                             DataColumn(label: Text("Modelo")),
                             DataColumn(label: Text("Serie")),
+                            DataColumn(label: Text("Inventario")),
                             DataColumn(label: Text("Fecha Reporte")),
                             DataColumn(label: Text("Fecha Guía")),
                             DataColumn(label: Text("Fecha Diagnóstico")),
@@ -309,6 +323,7 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                               DataCell(Text(terminal.marca)),
                               DataCell(Text(terminal.modelo)),
                               DataCell(Text(terminal.serie)),
+                              DataCell(Text(terminal.inventario)),
 
                               /// 📌 Casillas editables de fechas con DatePicker e ícono de calendario
                               _buildEditableDateCell(terminal, "fechaReporte"),

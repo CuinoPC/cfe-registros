@@ -48,21 +48,27 @@ class _HistorialPageState extends State<HistorialPage> {
     }
   }
 
-  // 🔹 Filtrar la lista según el texto de búsqueda
+  /// 🔍 **Filtrar la lista según el texto de búsqueda (coincidencias exactas)**
   void _filterSearchResults(String query) {
     setState(() {
-      _searchQuery = query.toLowerCase();
-      _filteredHistorial = _historial.where((registro) {
-        return registro.rpeResponsable.toLowerCase().contains(_searchQuery) ||
-            _getAreaUsuario(registro.usuarioId)
-                .toLowerCase()
-                .contains(_searchQuery) ||
-            registro.serie.toLowerCase().contains(_searchQuery) ||
-            registro.nombreResponsable.toLowerCase().contains(_searchQuery) ||
-            _getNombreUsuario(registro.usuarioId)
-                .toLowerCase()
-                .contains(_searchQuery);
-      }).toList();
+      _searchQuery = query.trim().toLowerCase();
+
+      if (_searchQuery.isEmpty) {
+        // ✅ Si la búsqueda está vacía, restauramos todos los registros
+        _filteredHistorial = List.from(_historial);
+      } else {
+        // ✅ Filtrar solo coincidencias exactas
+        _filteredHistorial = _historial.where((registro) {
+          return registro.rpeResponsable.trim().toLowerCase() == _searchQuery ||
+              _getAreaUsuario(registro.usuarioId).trim().toLowerCase() ==
+                  _searchQuery ||
+              registro.serie.trim().toLowerCase() == _searchQuery ||
+              registro.inventario.trim().toLowerCase() == _searchQuery ||
+              registro.nombreResponsable.trim().toLowerCase() == _searchQuery ||
+              _getNombreUsuario(registro.usuarioId).trim().toLowerCase() ==
+                  _searchQuery;
+        }).toList();
+      }
     });
   }
 
@@ -78,6 +84,10 @@ class _HistorialPageState extends State<HistorialPage> {
           break;
         case "Serie":
           _filteredHistorial.sort((a, b) => a.serie.compareTo(b.serie));
+          break;
+        case "Inventario":
+          _filteredHistorial
+              .sort((a, b) => a.inventario.compareTo(b.inventario));
           break;
         case "Nombre Responsable":
           _filteredHistorial.sort(
@@ -190,6 +200,7 @@ class _HistorialPageState extends State<HistorialPage> {
                                   "Marca",
                                   "Modelo",
                                   "Serie",
+                                  "Inventario",
                                   "Nombre Responsable",
                                   "Usuario (RP)"
                                 ]

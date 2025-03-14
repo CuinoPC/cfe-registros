@@ -176,8 +176,8 @@ class ApiTerminalService {
     }
   }
 
-  Future<bool> marcarTerminalDanada(
-      int terminalId, String marca, String modelo, String serie) async {
+  Future<bool> marcarTerminalDanada(int terminalId, String marca, String modelo,
+      String serie, String inventario) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token =
         prefs.getString('token'); // 🔹 Obtener token de autenticación
@@ -197,6 +197,7 @@ class ApiTerminalService {
         "marca": marca,
         "modelo": modelo,
         "serie": serie,
+        "inventario": inventario,
       }),
     );
 

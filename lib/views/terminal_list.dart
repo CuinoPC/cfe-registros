@@ -92,23 +92,32 @@ class _TerminalListState extends State<TerminalList> {
     }
   }
 
-  // 🔹 Filtrar la lista según el texto de búsqueda
+  /// 🔍 **Filtrar la lista según el texto de búsqueda (coincidencias exactas)**
   void _filterSearchResults(String query) {
     setState(() {
-      _searchQuery = query.toLowerCase();
-      _filteredTerminales = _terminales.where((terminal) {
-        return terminal.marca.toLowerCase().contains(_searchQuery) ||
-            terminal.modelo.toLowerCase().contains(_searchQuery) ||
-            terminal.serie.toLowerCase().contains(_searchQuery) ||
-            terminal.nombreResponsable.toLowerCase().contains(_searchQuery) ||
-            _getNombreUsuario(terminal.usuarioId)
-                .toLowerCase()
-                .contains(_searchQuery) ||
-            _getAreaResponsablePorRP(terminal.rpeResponsable)
-                .toLowerCase()
-                .contains(
-                    _searchQuery); // 🔹 Filtrar ahora por área del responsable
-      }).toList();
+      _searchQuery = query.trim().toLowerCase();
+
+      if (_searchQuery.isEmpty) {
+        // ✅ Si el campo de búsqueda está vacío, restaurar todos los registros
+        _filteredTerminales = List.from(_terminales);
+      } else {
+        // ✅ Buscar solo coincidencias exactas
+        _filteredTerminales = _terminales.where((terminal) {
+          return terminal.marca.trim().toLowerCase() == _searchQuery ||
+              terminal.modelo.trim().toLowerCase() == _searchQuery ||
+              terminal.serie.trim().toLowerCase() == _searchQuery ||
+              terminal.inventario.trim().toLowerCase() == _searchQuery ||
+              terminal.nombreResponsable.trim().toLowerCase() == _searchQuery ||
+              _getNombreUsuario(terminal.usuarioId).trim().toLowerCase() ==
+                  _searchQuery ||
+              _getRpUsuario(terminal.usuarioId).trim().toLowerCase() ==
+                  _searchQuery ||
+              _getAreaResponsablePorRP(terminal.rpeResponsable)
+                      .trim()
+                      .toLowerCase() ==
+                  _searchQuery;
+        }).toList();
+      }
     });
   }
 
@@ -230,8 +239,8 @@ class _TerminalListState extends State<TerminalList> {
     });
 
     if (value) {
-      bool success = await _ApiTerminalService.marcarTerminalDanada(
-          terminal.id, terminal.marca, terminal.modelo, terminal.serie);
+      bool success = await _ApiTerminalService.marcarTerminalDanada(terminal.id,
+          terminal.marca, terminal.modelo, terminal.serie, terminal.inventario);
 
       if (success) {
         // ✅ Mostrar mensaje de éxito
