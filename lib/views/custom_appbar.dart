@@ -3,8 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../views/login_page.dart';
 import '../views/user_list.dart';
 import '../views/terminal_list.dart';
-import '../views/terminales_danadas.dart'; // ✅ Importar la nueva pantalla
-import 'home_screen.dart'; // ✅ Importa AdminDashboard
+import '../views/terminales_danadas.dart';
+import '../views/reporte_supervision.dart'; // ✅ Importar la nueva pantalla
+import 'home_screen.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   @override
@@ -183,6 +184,12 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 builder: (context) =>
                     TerminalesDanadasPage(terminalesDanadas: [])),
           );
+        } else if (newValue == "Reporte de Supervisión") {
+          // ✅ Nueva opción agregada
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ReporteSupervision()),
+          );
         }
       },
       offset: const Offset(0, 50),
@@ -200,6 +207,14 @@ class _CustomAppBarState extends State<CustomAppBar> {
           child: ListTile(
             leading: Icon(Icons.warning, color: Colors.redAccent),
             title: const Text("Terminales Dañadas"),
+          ),
+        ),
+        PopupMenuItem(
+          // ✅ Nueva opción agregada
+          value: "Reporte de Supervisión",
+          child: ListTile(
+            leading: Icon(Icons.assignment, color: Colors.blueAccent),
+            title: const Text("Reporte de Supervisión"),
           ),
         ),
       ],

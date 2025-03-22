@@ -265,4 +265,82 @@ class ApiTerminalService {
           'Error al actualizar la terminal dañada: ${response.body}');
     }
   }
+
+  // 🔹 Nueva función para obtener terminales por área
+  Future<List<Terminal>> getTerminalesPorArea(String area) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) return [];
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/terminales/area/$area'),
+      headers: {"Authorization": token},
+    );
+
+    if (response.statusCode == 200) {
+      var decodedJson = jsonDecode(response.body);
+
+      if (decodedJson == null || decodedJson.isEmpty) {
+        return []; // ✅ Retornar lista vacía en caso de error
+      }
+
+      return decodedJson
+          .map<Terminal>((json) => Terminal.fromJson(json))
+          .toList();
+    } else {
+      return []; // ✅ Retornar lista vacía si hay error en la API
+    }
+  }
+
+  Future<bool> saveSupervisionData(Map<String, dynamic> data) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) return false;
+
+    final response = await http.post(
+      Uri.parse('$baseUrl//terminales/supervision'),
+      headers: {"Content-Type": "application/json", "Authorization": token},
+      body: jsonEncode(data),
+    );
+
+    return response.statusCode == 201;
+  }
+
+  // ✅ Nueva función para actualizar los datos en la tabla en tiempo real
+  Future<bool> updateSupervisionData(
+      int terminalId, String field, dynamic value) async {
+    final response = await http.put(
+      Uri.parse("$baseUrl/terminales/supervision/update"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "terminal_id": terminalId,
+        "field": field,
+        "value": value,
+      }),
+    );
+
+    return response.statusCode == 200;
+  }
+
+  Future<List<Map<String, dynamic>>> getHistorialSupervision(
+      int terminalId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) return [];
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/terminales/supervision/historial/$terminalId'),
+      headers: {"Authorization": token},
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> jsonList = jsonDecode(response.body);
+      return jsonList.cast<Map<String, dynamic>>();
+    } else {
+      return [];
+    }
+  }
 }

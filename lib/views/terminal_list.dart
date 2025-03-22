@@ -213,11 +213,13 @@ class _TerminalListState extends State<TerminalList> {
     }
   }
 
-  void _navigateToViewPhotos(Map<String, List<String>> fotosPorFecha) {
+  void _navigateToViewPhotos(
+      int terminalId, Map<String, List<String>> fotosPorFecha) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ViewPhotosPage(fotosPorFecha: fotosPorFecha),
+        builder: (context) => ViewPhotosPage(
+            terminalId: terminalId, fotosPorFecha: fotosPorFecha),
       ),
     );
   }
@@ -443,7 +445,8 @@ class _TerminalListState extends State<TerminalList> {
                             TextButton(
                               onPressed: () {
                                 if (terminal.fotos.isNotEmpty) {
-                                  _navigateToViewPhotos(terminal.fotos);
+                                  _navigateToViewPhotos(
+                                      terminal.id, terminal.fotos);
                                 } else {
                                   _navigateToUploadPhotos(terminal.id);
                                 }

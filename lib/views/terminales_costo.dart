@@ -17,8 +17,9 @@ class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
   double _totalCost = 0.0;
   bool _isLoading = false;
   Map<int, double> _costosPorAno = {}; // 🔹 Costos agrupados por año
+  bool _filtroPorAno = false; // 🔹 Saber si la búsqueda es solo por año
 
-  /// 🔍 **Filtrar la lista según el número de serie o inventario y calcular costos por año**
+  /// 🔍 **Filtrar terminales según el número de serie, inventario o año**
   void _buscarTerminales(String query) async {
     setState(() {
       _isLoading = true;
@@ -27,16 +28,29 @@ class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
 
     List<TerminalDanada> terminales = await _apiService.getTerminalesDanadas();
 
-    // 🔹 Filtrar terminales que coincidan exactamente con el número de serie o inventario
-    List<TerminalDanada> filtradas = terminales.where((t) {
-      return t.serie.trim().toLowerCase() == _searchQuery.toLowerCase() ||
-          t.inventario.trim().toLowerCase() == _searchQuery.toLowerCase();
-    }).toList();
-
-    // 🔹 Agrupar costos por año
+    List<TerminalDanada> filtradas = [];
     Map<int, double> costosPorAno = {};
     double costoTotal = 0.0;
+    bool filtroAno = false;
 
+    // 🔹 Si el usuario ingresó un año (4 dígitos)
+    if (RegExp(r'^\d{4}$').hasMatch(_searchQuery)) {
+      int anoFiltrado = int.parse(_searchQuery);
+      filtradas = terminales.where((t) {
+        if (t.fechaReparacion == null || t.costo == null) return false;
+        DateTime fecha = DateTime.parse(t.fechaReparacion!);
+        return fecha.year == anoFiltrado;
+      }).toList();
+      filtroAno = true;
+    } else {
+      // 🔹 Buscar por número de serie o inventario
+      filtradas = terminales.where((t) {
+        return t.serie.trim().toLowerCase() == _searchQuery.toLowerCase() ||
+            t.inventario.trim().toLowerCase() == _searchQuery.toLowerCase();
+      }).toList();
+    }
+
+    // 🔹 Agrupar costos por año
     for (var terminal in filtradas) {
       if (terminal.fechaReparacion != null && terminal.costo != null) {
         DateTime fecha = DateTime.parse(terminal.fechaReparacion!);
@@ -57,16 +71,16 @@ class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
           b.fechaReparacion != null ? DateTime.parse(b.fechaReparacion!) : null;
 
       if (fechaA == null && fechaB == null) return 0;
-      if (fechaA == null) return 1; // ✅ Los que no tienen fecha van al final
+      if (fechaA == null) return 1;
       if (fechaB == null) return -1;
-      return fechaB
-          .compareTo(fechaA); // ✅ Orden descendente (más recientes primero)
+      return fechaB.compareTo(fechaA);
     });
 
     setState(() {
       _terminalesFiltradas = filtradas;
       _totalCost = costoTotal;
-      _costosPorAno = costosPorAno; // Guardar costos agrupados por año
+      _costosPorAno = costosPorAno;
+      _filtroPorAno = filtroAno;
       _isLoading = false;
     });
   }
@@ -82,7 +96,7 @@ class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
             TextField(
               onChanged: _buscarTerminales,
               decoration: InputDecoration(
-                labelText: "Buscar por número de serie o inventario",
+                labelText: "Buscar por número de serie, inventario o año",
                 prefixIcon: const Icon(Icons.search, color: Colors.teal),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -104,7 +118,7 @@ class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
                       Icon(Icons.search, size: 80, color: Colors.grey.shade500),
                       const SizedBox(height: 10),
                       const Text(
-                        "Ingrese un número de serie o inventario para buscar terminales dañadas.",
+                        "Ingrese un número de serie, inventario o año para buscar terminales dañadas.",
                         style: TextStyle(fontSize: 16, color: Colors.black54),
                         textAlign: TextAlign.center,
                       ),
@@ -122,7 +136,7 @@ class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
                           size: 80, color: Colors.grey.shade500),
                       const SizedBox(height: 10),
                       const Text(
-                        "No se encontraron terminales con ese número de serie o inventario.",
+                        "No se encontraron terminales con ese criterio.",
                         style: TextStyle(fontSize: 16, color: Colors.black54),
                         textAlign: TextAlign.center,
                       ),
@@ -168,31 +182,31 @@ class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
               ),
               const SizedBox(height: 10),
 
-              // 🔹 Mostrar costos agrupados por año
+              // 🔹 Mostrar costo por año si se encontraron resultados
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ..._costosPorAno.entries.map((entry) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Text(
-                          "Costo en ${entry.key}: \$${entry.value.toStringAsFixed(2)}",
-                          style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.teal),
-                        ),
-                      )),
+                  if (_costosPorAno.isNotEmpty)
+                    ..._costosPorAno.entries.map((entry) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text(
+                            "Costo en ${entry.key}: \$${entry.value.toStringAsFixed(2)}",
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.teal),
+                          ),
+                        )),
 
-                  const SizedBox(height: 10),
-
-                  // 🔹 Mostrar costo total de todos los años
-                  Text(
-                    "Costo Total (Todos los años): \$${_totalCost.toStringAsFixed(2)}",
-                    style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.teal),
-                  ),
+                  // 🔹 Mostrar costo total solo si la búsqueda no es por año
+                  if (!_filtroPorAno)
+                    Text(
+                      "Costo Total (Todos los años): \$${_totalCost.toStringAsFixed(2)}",
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal),
+                    ),
                 ],
               ),
             ],
