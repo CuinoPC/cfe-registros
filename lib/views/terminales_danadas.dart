@@ -1,5 +1,6 @@
 import 'package:cfe_registros/models/terminal_danada.dart';
-import 'package:cfe_registros/services/api_terminales.dart';
+import 'package:cfe_registros/services/api_piezas_tps.dart';
+import 'package:cfe_registros/services/api_terminal_danada.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:cfe_registros/views/piezas_tps_page.dart';
 import 'package:cfe_registros/views/terminales_costo.dart';
@@ -23,7 +24,9 @@ class TerminalesDanadasPage extends StatefulWidget {
 class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
   List<TerminalDanada> _terminalesDanadas = [];
   List<TerminalDanada> _filteredTerminalesDanadas = [];
-  final ApiTerminalService _apiService = ApiTerminalService();
+  final TerminalDanadaService _apiDanadasService = TerminalDanadaService();
+  final PiezasTPSService _piezasService = PiezasTPSService();
+
   bool _isLoading = true;
   String _searchQuery = "";
   String _selectedFilter = "Fecha Reporte";
@@ -35,7 +38,8 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
   }
 
   Future<void> _cargarDatos() async {
-    List<TerminalDanada> terminales = await _apiService.getTerminalesDanadas();
+    List<TerminalDanada> terminales =
+        await _apiDanadasService.getTerminalesDanadas();
     setState(() {
       _terminalesDanadas = terminales;
       _filteredTerminalesDanadas = terminales;
@@ -145,7 +149,7 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
       print("Fecha seleccionada ($field): $formattedDate");
 
       // ✅ Enviar actualización al backend
-      await _apiService.updateTerminalDanada(terminal);
+      await _apiDanadasService.updateTerminalDanada(terminal);
 
       // ✅ Guardar la reparación en SharedPreferences para que TerminalList lo desmarque
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -451,7 +455,7 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
           }
         },
         onFieldSubmitted: (value) {
-          _apiService.updateTerminalDanada(terminal);
+          _apiDanadasService.updateTerminalDanada(terminal);
         },
       ),
     );
@@ -501,7 +505,7 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
           });
         },
         onFieldSubmitted: (value) {
-          _apiService.updateTerminalDanada(terminal);
+          _apiDanadasService.updateTerminalDanada(terminal);
         },
       ),
     );
@@ -511,7 +515,8 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
     return DataCell(
       TextButton(
         onPressed: () async {
-          List<Map<String, dynamic>> piezas = await _apiService.getPiezasTPS();
+          List<Map<String, dynamic>> piezas =
+              await _piezasService.getPiezasTPS();
 
           showModalBottomSheet(
             context: context,
@@ -554,7 +559,7 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                         });
 
                         Navigator.pop(context);
-                        await _apiService.updateTerminalDanada(terminal);
+                        await _apiDanadasService.updateTerminalDanada(terminal);
                       });
                 }).toList(),
               );
@@ -590,7 +595,7 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                 if (result != null && result.files.single.bytes != null) {
                   final archivo = result.files.single;
 
-                  final success = await _apiService.subirArchivoPDF(
+                  final success = await _apiDanadasService.subirArchivoPDF(
                     terminal.id!,
                     archivo.bytes!,
                     archivo.name,

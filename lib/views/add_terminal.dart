@@ -1,4 +1,4 @@
-import 'package:cfe_registros/services/api_terminales.dart';
+import 'package:cfe_registros/services/api_terminal.dart';
 import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +10,7 @@ class AddTerminal extends StatefulWidget {
 }
 
 class _AddTerminalState extends State<AddTerminal> {
-  final ApiTerminalService _ApiTerminalService = ApiTerminalService();
+  final TerminalService _ApiTerminalService = TerminalService();
   final ApiUserService _ApiUserService = ApiUserService();
   final TextEditingController marcaController = TextEditingController();
   final TextEditingController modeloController = TextEditingController();

@@ -1,9 +1,9 @@
 import 'package:cfe_registros/models/terminal_danada.dart';
-import 'package:cfe_registros/services/api_terminales.dart';
+import 'package:cfe_registros/services/api_terminal.dart';
+import 'package:cfe_registros/services/api_terminal_danada.dart';
 import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:cfe_registros/views/historial_page.dart';
-import 'package:cfe_registros/views/terminales_danadas.dart';
 import 'package:cfe_registros/views/upload_photos.dart';
 import 'package:cfe_registros/views/view_photos.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +19,8 @@ class TerminalList extends StatefulWidget {
 }
 
 class _TerminalListState extends State<TerminalList> {
-  final ApiTerminalService _ApiTerminalService = ApiTerminalService();
+  final TerminalService _ApiTerminalService = TerminalService();
+  final TerminalDanadaService _TerminalDanadaService = TerminalDanadaService();
   final ApiUserService _ApiUserService = ApiUserService();
   List<Terminal> _terminales = [];
   List<Terminal> _filteredTerminales = [];
@@ -46,7 +47,7 @@ class _TerminalListState extends State<TerminalList> {
     List<Terminal>? terminales = await _ApiTerminalService.getTerminales();
     List<Map<String, dynamic>>? usuariosData = await _ApiUserService.getUsers();
     List<TerminalDanada> terminalesDanadas =
-        await _ApiTerminalService.getTerminalesDanadas();
+        await _TerminalDanadaService.getTerminalesDanadas();
 
     if (terminales != null && usuariosData != null) {
       setState(() {
@@ -241,8 +242,12 @@ class _TerminalListState extends State<TerminalList> {
     });
 
     if (value) {
-      bool success = await _ApiTerminalService.marcarTerminalDanada(terminal.id,
-          terminal.marca, terminal.modelo, terminal.serie, terminal.inventario);
+      bool success = await _TerminalDanadaService.marcarTerminalDanada(
+          terminal.id,
+          terminal.marca,
+          terminal.modelo,
+          terminal.serie,
+          terminal.inventario);
 
       if (success) {
         // ✅ Mostrar mensaje de éxito

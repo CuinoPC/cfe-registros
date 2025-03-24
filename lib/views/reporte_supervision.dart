@@ -1,7 +1,8 @@
+import 'package:cfe_registros/services/api_terminal.dart';
+import 'package:cfe_registros/services/api_terminales_supervision.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
-import '../services/api_terminales.dart';
 import '../services/api_users.dart';
 import '../models/terminal.dart';
 
@@ -11,7 +12,8 @@ class ReporteSupervision extends StatefulWidget {
 }
 
 class _ReporteSupervisionState extends State<ReporteSupervision> {
-  final ApiTerminalService _apiTerminalService = ApiTerminalService();
+  final TerminalService _apiTerminalService = TerminalService();
+  final SupervisionService _supervisionService = SupervisionService();
   final ApiUserService _apiUserService = ApiUserService();
 
   List<Map<String, dynamic>> _areas = [];
@@ -45,7 +47,7 @@ class _ReporteSupervisionState extends State<ReporteSupervision> {
       // 🔄 Recuperar los datos guardados desde el backend
       for (var terminal in terminales) {
         final historial =
-            await _apiTerminalService.getHistorialSupervision(terminal.id);
+            await _supervisionService.getHistorialSupervision(terminal.id);
         if (historial.isNotEmpty) {
           setState(() {
             _supervisionData[terminal.id] = historial.first;

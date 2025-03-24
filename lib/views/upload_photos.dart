@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
+import 'package:cfe_registros/services/api_terminal.dart';
 import 'package:cfe_registros/services/api_terminales.dart';
+import 'package:cfe_registros/services/api_terminales_supervision.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +22,9 @@ class UploadPhotosPage extends StatefulWidget {
 }
 
 class _UploadPhotosPageState extends State<UploadPhotosPage> {
-  final ApiTerminalService _ApiTerminalService = ApiTerminalService();
+  final TerminalService _terminalService = TerminalService();
+  final SupervisionService _supervisionService = SupervisionService();
+
   List<XFile> _selectedPhotos = [];
   bool _isUploading = false;
   List<Terminal> _terminales = [];
@@ -34,7 +38,7 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
   }
 
   Future<void> _fetchSupervisionData() async {
-    List<Terminal>? terminales = await _ApiTerminalService.getTerminales();
+    List<Terminal>? terminales = await _terminalService.getTerminales();
     if (terminales != null) {
       setState(() {
         _terminales =
@@ -94,7 +98,7 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
       _isUploading = true;
     });
 
-    bool fotosSubidas = await _ApiTerminalService.uploadTerminalPhotos(
+    bool fotosSubidas = await _terminalService.uploadTerminalPhotos(
         widget.terminalId, _selectedPhotos);
 
     if (!fotosSubidas) {
@@ -115,7 +119,7 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
       };
 
       bool supervisionGuardada =
-          await _ApiTerminalService.saveSupervisionData(data);
+          await _supervisionService.saveSupervisionData(data);
       if (!supervisionGuardada) {
         setState(() {
           _isUploading = false;

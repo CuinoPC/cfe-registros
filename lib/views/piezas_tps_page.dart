@@ -1,6 +1,6 @@
+import 'package:cfe_registros/services/api_piezas_tps.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:cfe_registros/services/api_terminales.dart';
 import 'package:data_table_2/data_table_2.dart';
 
 class PiezasTPSPage extends StatefulWidget {
@@ -9,7 +9,7 @@ class PiezasTPSPage extends StatefulWidget {
 }
 
 class _PiezasTPSPageState extends State<PiezasTPSPage> {
-  final ApiTerminalService _apiService = ApiTerminalService();
+  final PiezasTPSService _apiService = PiezasTPSService();
   List<Map<String, dynamic>> piezas = [];
   List<TextEditingController> costoControllers = [];
 

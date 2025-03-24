@@ -1,9 +1,9 @@
+import 'package:cfe_registros/services/api_terminal_danada.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:intl/intl.dart';
 import '../models/terminal_danada.dart';
-import '../services/api_terminales.dart';
 
 class CostosTerminalesPage extends StatefulWidget {
   @override
@@ -11,7 +11,7 @@ class CostosTerminalesPage extends StatefulWidget {
 }
 
 class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
-  final ApiTerminalService _apiService = ApiTerminalService();
+  final TerminalDanadaService _apiService = TerminalDanadaService();
   List<TerminalDanada> _terminalesFiltradas = [];
   String _searchQuery = "";
   double _totalCost = 0.0;

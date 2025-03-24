@@ -1,4 +1,4 @@
-import 'package:cfe_registros/services/api_terminales.dart';
+import 'package:cfe_registros/services/api_terminales_supervision.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -14,7 +14,7 @@ class ViewPhotosPage extends StatefulWidget {
 }
 
 class _ViewPhotosPageState extends State<ViewPhotosPage> {
-  final ApiTerminalService _apiService = ApiTerminalService();
+  final SupervisionService _supervisionService = SupervisionService();
   bool _isLoading = true;
   List<Map<String, dynamic>> _historialSupervision = [];
   Map<String, List<Map<String, dynamic>>> _supervisionPorFecha = {};
@@ -27,8 +27,7 @@ class _ViewPhotosPageState extends State<ViewPhotosPage> {
 
   Future<void> _fetchSupervisionHistorial() async {
     final historial =
-        await _apiService.getHistorialSupervision(widget.terminalId);
-
+        await _supervisionService.getHistorialSupervision(widget.terminalId);
     // Agrupar supervisiones por fecha (yyyy-MM-dd)
     Map<String, List<Map<String, dynamic>>> agrupado = {};
     for (var entry in historial) {

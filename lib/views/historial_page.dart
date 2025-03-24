@@ -1,5 +1,5 @@
 import 'package:cfe_registros/models/historial.dart';
-import 'package:cfe_registros/services/api_terminales.dart';
+import 'package:cfe_registros/services/api_terminal_historial.dart';
 import 'package:cfe_registros/services/api_users.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
@@ -12,7 +12,7 @@ class HistorialPage extends StatefulWidget {
 }
 
 class _HistorialPageState extends State<HistorialPage> {
-  final ApiTerminalService _ApiTerminalService = ApiTerminalService();
+  final HistorialService _ApiTerminalService = HistorialService();
   final ApiUserService _ApiUserService = ApiUserService();
   List<HistorialRegistro> _historial = [];
   List<HistorialRegistro> _filteredHistorial = [];
