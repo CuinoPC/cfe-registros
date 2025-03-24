@@ -232,9 +232,9 @@ class _HistorialPageState extends State<HistorialPage> {
                 // ✅ Tabla con los datos del historial
                 Expanded(
                   child: DataTable2(
-                    columnSpacing: 12,
-                    horizontalMargin: 12,
-                    minWidth: 900,
+                    columnSpacing: 24,
+                    horizontalMargin: 24,
+                    minWidth: 2000,
                     headingRowColor: MaterialStateColor.resolveWith(
                         (states) => Colors.teal.shade100),
                     border: TableBorder.all(color: Colors.grey),

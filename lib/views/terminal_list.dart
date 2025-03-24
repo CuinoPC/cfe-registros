@@ -400,9 +400,9 @@ class _TerminalListState extends State<TerminalList> {
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: DataTable2(
-                      columnSpacing: 12,
-                      horizontalMargin: 12,
-                      minWidth: 1200,
+                      columnSpacing: 24,
+                      horizontalMargin: 24,
+                      minWidth: 3000,
                       headingRowColor: MaterialStateColor.resolveWith(
                           (states) => Colors.teal.shade100),
                       border: TableBorder.all(color: Colors.grey),
@@ -482,9 +482,13 @@ class _TerminalListState extends State<TerminalList> {
                           DataCell(
                             Checkbox(
                               value: _terminalesDanadas.contains(terminal),
-                              onChanged: (bool? value) {
-                                _marcarTerminalDanada(terminal, value ?? false);
-                              },
+                              onChanged: _terminalesDanadas.contains(terminal)
+                                  ? null // 🔒 Ya está marcada, deshabilita el cambio
+                                  : (bool? value) {
+                                      if (value == true) {
+                                        _marcarTerminalDanada(terminal, true);
+                                      }
+                                    },
                             ),
                           ),
                           DataCell(

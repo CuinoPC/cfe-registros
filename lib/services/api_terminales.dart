@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
+import 'package:http_parser/http_parser.dart';
 
 class ApiTerminalService {
   final String baseUrl = "http://localhost:5000/api";
@@ -257,6 +258,8 @@ class ApiTerminalService {
         'fechaReparacion': terminal.fechaReparacion,
         'diasReparacion': terminal.diasReparacion,
         'costo': terminal.costo,
+        'piezasReparadas': terminal.piezasReparadas,
+        'observaciones': terminal.observaciones,
       }),
     );
 
@@ -341,6 +344,73 @@ class ApiTerminalService {
       return jsonList.cast<Map<String, dynamic>>();
     } else {
       return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getPiezasTPS() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) return [];
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/piezas'),
+      headers: {"Authorization": token},
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      return [];
+    }
+  }
+
+  Future<bool> updatePiezaTPS(int id, String nombre, double costo) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) return false;
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/piezas/$id'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token,
+      },
+      body: jsonEncode({
+        "nombre_pieza": nombre,
+        "costo": costo,
+      }),
+    );
+
+    return response.statusCode == 200;
+  }
+
+  Future<bool> subirArchivoPDF(
+      int id, Uint8List archivoBytes, String nombreArchivo) async {
+    try {
+      final uri = Uri.parse('$baseUrl/terminales/danadas/$id/pdf');
+      final request = http.MultipartRequest('POST', uri);
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) return false;
+
+      request.headers['Authorization'] = token;
+
+      request.files.add(http.MultipartFile.fromBytes(
+        'archivo',
+        archivoBytes,
+        filename: nombreArchivo,
+        contentType: MediaType('application', 'pdf'),
+      ));
+
+      final response = await request.send();
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error al subir archivo PDF: $e");
+      return false;
     }
   }
 }

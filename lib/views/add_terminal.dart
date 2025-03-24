@@ -79,7 +79,6 @@ class _AddTerminalState extends State<AddTerminal> {
       setState(() {
         _usuariosTerminal = _usuarios
             .where((user) =>
-                user['es_centro'] == false &&
                 user['es_admin'] == false &&
                 user['nom_area'] == areaResponsable)
             .toList();

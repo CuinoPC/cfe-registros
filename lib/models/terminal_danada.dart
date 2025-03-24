@@ -12,22 +12,27 @@ class TerminalDanada {
   String? fechaReparacion;
   int diasReparacion;
   double costo;
+  String piezasReparadas;
+  String observaciones;
+  String archivoPdf;
 
-  TerminalDanada({
-    required this.id,
-    required this.terminalId,
-    required this.marca,
-    required this.modelo,
-    required this.serie,
-    required this.inventario,
-    this.fechaReporte,
-    this.fechaGuia,
-    this.fechaDiagnostico,
-    this.fechaAutorizacion,
-    this.fechaReparacion,
-    this.diasReparacion = 0,
-    this.costo = 0.0,
-  });
+  TerminalDanada(
+      {required this.id,
+      required this.terminalId,
+      required this.marca,
+      required this.modelo,
+      required this.serie,
+      required this.inventario,
+      this.fechaReporte,
+      this.fechaGuia,
+      this.fechaDiagnostico,
+      this.fechaAutorizacion,
+      this.fechaReparacion,
+      this.diasReparacion = 0,
+      this.costo = 0.0,
+      required this.piezasReparadas,
+      required this.observaciones,
+      required this.archivoPdf});
 
   /// 📌 Convertir un objeto TerminalDanada a un mapa para usar en la interfaz
   Map<String, dynamic> toMap() {
@@ -45,6 +50,9 @@ class TerminalDanada {
       "fechaReparacion": fechaReparacion,
       "diasReparacion": diasReparacion.toString(),
       "costo": costo.toString(),
+      "piezasReparadas": piezasReparadas,
+      "observaciones": observaciones,
+      "archivoPdf": archivoPdf,
     };
   }
 
@@ -67,6 +75,9 @@ class TerminalDanada {
           : 0,
       costo:
           json['costo'] != null ? double.parse(json['costo'].toString()) : 0.0,
+      piezasReparadas: json['piezas_reparadas'] ?? '',
+      observaciones: json['observaciones'] ?? '',
+      archivoPdf: json['archivo_pdf'] ?? '',
     );
   }
 }

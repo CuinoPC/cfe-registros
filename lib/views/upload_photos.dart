@@ -25,19 +25,12 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
   bool _isUploading = false;
   List<Terminal> _terminales = [];
   Map<int, Map<String, dynamic>> _supervisionData = {};
-  final ScrollController _gridScrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _fetchSupervisionData();
     _loadDraft();
-  }
-
-  @override
-  void dispose() {
-    _gridScrollController.dispose();
-    super.dispose();
   }
 
   Future<void> _fetchSupervisionData() async {

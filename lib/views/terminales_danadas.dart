@@ -1,12 +1,15 @@
 import 'package:cfe_registros/models/terminal_danada.dart';
 import 'package:cfe_registros/services/api_terminales.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
+import 'package:cfe_registros/views/piezas_tps_page.dart';
 import 'package:cfe_registros/views/terminales_costo.dart';
 import 'package:data_table_2/data_table_2.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // 📌 Importamos para formatear fechas
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/terminal.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TerminalesDanadasPage extends StatefulWidget {
   final List<Terminal> terminalesDanadas;
@@ -201,6 +204,27 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                                   ),
                                 ],
                               ),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            PiezasTPSPage()), // Nueva página
+                                  );
+                                },
+                                icon: const Icon(Icons.settings),
+                                label: const Text("Ver piezas TPS"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 10),
@@ -292,9 +316,10 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: DataTable2(
-                          columnSpacing: 12,
-                          horizontalMargin: 12,
-                          minWidth: 1200,
+                          dataRowHeight: 80,
+                          columnSpacing: 24,
+                          horizontalMargin: 24,
+                          minWidth: 2800,
                           headingRowColor: MaterialStateColor.resolveWith(
                               (states) => Colors.teal.shade100),
                           border: TableBorder.all(color: Colors.grey),
@@ -313,6 +338,9 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                             DataColumn(label: Text("Fecha Reparación")),
                             DataColumn(label: Text("Días de Reparación")),
                             DataColumn(label: Text("Costo")),
+                            DataColumn(label: Text("Pieza Reparada")),
+                            DataColumn(label: Text("observaciones")),
+                            DataColumn(label: Text("Archivo PDF")),
                           ],
                           rows: List.generate(_filteredTerminalesDanadas.length,
                               (index) {
@@ -324,8 +352,6 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                               DataCell(Text(terminal.modelo)),
                               DataCell(Text(terminal.serie)),
                               DataCell(Text(terminal.inventario)),
-
-                              /// 📌 Casillas editables de fechas con DatePicker e ícono de calendario
                               _buildEditableDateCell(terminal, "fechaReporte"),
                               _buildEditableDateCell(terminal, "fechaGuia"),
                               _buildEditableDateCell(
@@ -334,11 +360,11 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                                   terminal, "fechaAutorizacion"),
                               _buildEditableDateCell(
                                   terminal, "fechaReparacion"),
-
                               _buildDiasReparacionCell(terminal),
-
-                              /// 📌 Casilla editable para "Costo"
                               _buildEditableNumberCell(terminal, "costo"),
+                              _buildPiezaSelectorCell(terminal),
+                              _buildEditableTextCell(terminal, "observaciones"),
+                              _buildArchivoPDFCell(terminal),
                             ]);
                           }),
                         ),
@@ -405,22 +431,24 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
 
   /// 📌 Widget para las celdas editables de Números (Días y Costo)
   DataCell _buildEditableNumberCell(TerminalDanada terminal, String field) {
+    final controller = TextEditingController(
+      text: terminal.toMap()[field]?.toString() ?? "",
+    );
+
     return DataCell(
       TextFormField(
-        initialValue: terminal.toMap()[field]?.toString() ?? "",
+        controller: controller,
         keyboardType: TextInputType.number,
         decoration: const InputDecoration(
           border: InputBorder.none,
           isDense: true,
         ),
         onChanged: (value) {
-          setState(() {
-            if (field == "diasReparacion") {
-              terminal.diasReparacion = int.tryParse(value) ?? 0;
-            } else if (field == "costo") {
-              terminal.costo = double.tryParse(value) ?? 0.0;
-            }
-          });
+          if (field == "diasReparacion") {
+            terminal.diasReparacion = int.tryParse(value) ?? 0;
+          } else if (field == "costo") {
+            terminal.costo = double.tryParse(value) ?? 0.0;
+          }
         },
         onFieldSubmitted: (value) {
           _apiService.updateTerminalDanada(terminal);
@@ -453,5 +481,153 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
       print("Error al calcular días de reparación: $e");
       return -1;
     }
+  }
+
+  DataCell _buildEditableTextCell(TerminalDanada terminal, String field) {
+    return DataCell(
+      TextFormField(
+        initialValue: terminal.toMap()[field]?.toString() ?? "",
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          isDense: true,
+        ),
+        onChanged: (value) {
+          setState(() {
+            if (field == "piezasReparadas") {
+              terminal.piezasReparadas = value;
+            } else if (field == "observaciones") {
+              terminal.observaciones = value;
+            }
+          });
+        },
+        onFieldSubmitted: (value) {
+          _apiService.updateTerminalDanada(terminal);
+        },
+      ),
+    );
+  }
+
+  DataCell _buildPiezaSelectorCell(TerminalDanada terminal) {
+    return DataCell(
+      TextButton(
+        onPressed: () async {
+          List<Map<String, dynamic>> piezas = await _apiService.getPiezasTPS();
+
+          showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return ListView(
+                children: piezas.map((pieza) {
+                  return ListTile(
+                      title: Text(pieza['nombre_pieza']),
+                      onTap: () async {
+                        setState(() {
+                          String nuevaPieza = pieza['nombre_pieza'];
+                          double costoPieza =
+                              double.tryParse(pieza['costo'].toString()) ?? 0.0;
+
+                          // 🔍 Verificar si la pieza ya está en la lista
+                          List<String> piezasActuales = terminal.piezasReparadas
+                              .split(',')
+                              .map((p) => p.trim().toLowerCase())
+                              .toList();
+
+                          if (!piezasActuales
+                              .contains(nuevaPieza.toLowerCase())) {
+                            // ✅ Agregar la nueva pieza al string
+                            if (terminal.piezasReparadas.trim().isEmpty) {
+                              terminal.piezasReparadas = nuevaPieza;
+                            } else {
+                              terminal.piezasReparadas += ', $nuevaPieza';
+                            }
+
+                            // ✅ Sumar su costo
+                            terminal.costo += costoPieza;
+                          } else {
+                            // 🟡 Opcional: mostrar alerta si ya fue agregada
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(
+                                  "La pieza '$nuevaPieza' ya fue seleccionada."),
+                              duration: const Duration(seconds: 2),
+                            ));
+                          }
+                        });
+
+                        Navigator.pop(context);
+                        await _apiService.updateTerminalDanada(terminal);
+                      });
+                }).toList(),
+              );
+            },
+          );
+        },
+        child: Text(
+          terminal.piezasReparadas.isEmpty
+              ? "Seleccionar pieza"
+              : terminal.piezasReparadas,
+          softWrap: true,
+          overflow: TextOverflow.visible,
+          maxLines: null,
+        ),
+      ),
+    );
+  }
+
+  DataCell _buildArchivoPDFCell(TerminalDanada terminal) {
+    return DataCell(
+      Row(
+        children: [
+          if (terminal.archivoPdf.isEmpty)
+            ElevatedButton.icon(
+              icon: const Icon(Icons.upload_file),
+              label: const Text("Subir PDF"),
+              onPressed: () async {
+                FilePickerResult? result = await FilePicker.platform.pickFiles(
+                  type: FileType.custom,
+                  allowedExtensions: ['pdf'],
+                );
+
+                if (result != null && result.files.single.bytes != null) {
+                  final archivo = result.files.single;
+
+                  final success = await _apiService.subirArchivoPDF(
+                    terminal.id!,
+                    archivo.bytes!,
+                    archivo.name,
+                  );
+
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("Archivo subido correctamente")),
+                    );
+                    _cargarDatos(); // ✅ Recargar para reflejar el cambio
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Error al subir archivo")),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text("Selecciona un archivo PDF válido")),
+                  );
+                }
+              },
+            )
+          else
+            TextButton.icon(
+              icon: const Icon(Icons.picture_as_pdf, color: Colors.red),
+              label: const Text("Ver PDF"),
+              onPressed: () async {
+                final url =
+                    Uri.parse("http://localhost:5000${terminal.archivoPdf}");
+                await launchUrl(url,
+                    webOnlyWindowName: '_blank'); // 🧠 Abre en nueva pestaña
+              },
+            ),
+        ],
+      ),
+    );
   }
 }

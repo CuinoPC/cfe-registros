@@ -1,3 +1,5 @@
+import 'package:cfe_registros/views/custom_appbar.dart';
+import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import '../services/api_terminales.dart';
 import '../services/api_users.dart';
@@ -38,47 +40,18 @@ class _ReporteSupervisionState extends State<ReporteSupervision> {
     if (terminales != null) {
       setState(() {
         _terminales = terminales;
-        // Inicializar valores de supervisión
-        _supervisionData = {
-          for (var terminal in terminales)
-            terminal.id: {
-              "anio_antiguedad": "",
-              "rpe_usuario": "",
-              "fotografias_fisicas": "",
-              "etiqueta_activo_fijo": 1,
-              "chip_con_serie_tableta": 1,
-              "foto_carcasa": 1,
-              "apn": 1,
-              "correo_gmail": 1,
-              "seguridad_desbloqueo": 1,
-              "coincide_serie_sim_imei": 1,
-              "responsiva_apn": 1,
-              "centro_trabajo_correcto": 1,
-              "responsiva": 0,
-              "serie_correcta_sistic": 1,
-              "serie_correcta_siitic": 1,
-              "asignacion_rpe_mysap": 1,
-            }
-        };
       });
-    }
-  }
 
-  // ✅ Función para guardar cambios SOLO cuando se presiona Enter
-  Future<void> _guardarCambio(int terminalId) async {
-    if (!_supervisionData.containsKey(terminalId)) return;
-
-    Map<String, dynamic> data = {
-      "terminal_id": terminalId,
-      ..._supervisionData[terminalId]!,
-      "total": calcularTotal(_supervisionData[terminalId]!),
-    };
-
-    bool success = await _apiTerminalService.saveSupervisionData(data);
-    if (!success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al actualizar los datos de supervisión")),
-      );
+      // 🔄 Recuperar los datos guardados desde el backend
+      for (var terminal in terminales) {
+        final historial =
+            await _apiTerminalService.getHistorialSupervision(terminal.id);
+        if (historial.isNotEmpty) {
+          setState(() {
+            _supervisionData[terminal.id] = historial.first;
+          });
+        }
+      }
     }
   }
 
@@ -89,123 +62,131 @@ class _ReporteSupervisionState extends State<ReporteSupervision> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Reporte de Supervisión")),
+      appBar: CustomAppBar(),
       body: Padding(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔽 Selector de área
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(labelText: "Selecciona un área"),
-              value: _selectedArea,
-              items: _areas.map((area) {
-                return DropdownMenuItem<String>(
-                  value: area['nom_area'],
-                  child: Text(area['nom_area']),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedArea = value;
-                  _fetchTerminales(value!);
-                });
-              },
-            ),
-            SizedBox(height: 10),
-
-            // 📋 Tabla de terminales
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text("Inventario")),
-                    DataColumn(label: Text("Serie")),
-                    DataColumn(label: Text("Año de antigüedad")),
-                    DataColumn(label: Text("RPE Usuario")),
-                    DataColumn(label: Text("Fotografías físicas (6)")),
-                    DataColumn(label: Text("Etiqueta Activo Fijo")),
-                    DataColumn(label: Text("Chip con serie Tableta")),
-                    DataColumn(label: Text("Foto de carcasa")),
-                    DataColumn(label: Text("APN")),
-                    DataColumn(label: Text("Correo GMAIL")),
-                    DataColumn(label: Text("Seguridad de desbloqueo")),
-                    DataColumn(label: Text("Coincide Serie, SIM, IMEI")),
-                    DataColumn(label: Text("Responsiva APN")),
-                    DataColumn(label: Text("Centro de trabajo correcto")),
-                    DataColumn(label: Text("Responsiva")),
-                    DataColumn(label: Text("Serie correcta en SISTIC")),
-                    DataColumn(label: Text("Serie correcta en SIITIC")),
-                    DataColumn(label: Text("Asignación de RPE vs MySAP")),
-                    DataColumn(label: Text("TOTAL")),
-                  ],
-                  rows: _terminales.map((terminal) {
-                    return DataRow(cells: [
-                      DataCell(Text(terminal.inventario)),
-                      DataCell(Text(terminal.serie)),
-
-                      // 🔹 Campos editables (Solo guardan al presionar Enter)
-                      DataCell(TextFormField(
-                        initialValue:
-                            _supervisionData[terminal.id]!["anio_antiguedad"],
-                        textInputAction:
-                            TextInputAction.done, // 🔹 Habilita Enter
-                        onFieldSubmitted: (value) {
-                          _supervisionData[terminal.id]!["anio_antiguedad"] =
-                              value;
-                          _guardarCambio(terminal.id);
-                        },
-                      )),
-                      DataCell(TextFormField(
-                        initialValue:
-                            _supervisionData[terminal.id]!["rpe_usuario"],
-                        textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (value) {
-                          _supervisionData[terminal.id]!["rpe_usuario"] = value;
-                          _guardarCambio(terminal.id);
-                        },
-                      )),
-                      DataCell(TextFormField(
-                        initialValue: _supervisionData[terminal.id]![
-                            "fotografias_fisicas"],
-                        textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (value) {
-                          _supervisionData[terminal.id]![
-                              "fotografias_fisicas"] = value;
-                          _guardarCambio(terminal.id);
-                        },
-                      )),
-
-                      // 🔹 Opciones "Sí/No"
-                      ..._supervisionData[terminal.id]!.keys.skip(3).map((key) {
-                        return DataCell(DropdownButton<int>(
-                          value: _supervisionData[terminal.id]![key],
-                          items: [
-                            DropdownMenuItem(value: 1, child: Text("Sí")),
-                            DropdownMenuItem(value: 0, child: Text("No")),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              _supervisionData[terminal.id]![key] = value!;
-                              _guardarCambio(terminal.id);
-                            });
-                          },
-                        ));
-                      }).toList(),
-
-                      // 🔹 Campo TOTAL (Se actualiza en tiempo real)
-                      DataCell(Text(
-                          calcularTotal(_supervisionData[terminal.id]!)
-                              .toString())),
-                    ]);
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.teal.shade50,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+                border: Border.all(color: Colors.teal.shade200, width: 1.5),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButtonFormField<String>(
+                  decoration: const InputDecoration.collapsed(hintText: ''),
+                  value: _selectedArea,
+                  isExpanded: true,
+                  hint: const Text("Selecciona un área"),
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                      color: Colors.teal),
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                  dropdownColor: Colors.white,
+                  items: _areas.map((area) {
+                    return DropdownMenuItem<String>(
+                      value: area['nom_area'],
+                      child: Text(area['nom_area']),
+                    );
                   }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedArea = value;
+                      _fetchTerminales(value!);
+                    });
+                  },
                 ),
               ),
+            ),
+
+            const SizedBox(height: 10),
+
+            /// 🔽 Mostrar mensaje si no se ha seleccionado nada o no hay datos
+            Expanded(
+              child: _selectedArea == null || _terminales.isEmpty
+                  ? const Center(
+                      child: Text(
+                        "Selecciona un área para ver el reporte de supervisión",
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: DataTable2(
+                        columnSpacing: 32,
+                        horizontalMargin: 32,
+                        minWidth: 3500,
+                        headingRowColor: MaterialStateColor.resolveWith(
+                            (states) => Colors.teal.shade100),
+                        border: TableBorder.all(color: Colors.grey),
+                        columns: const [
+                          DataColumn(label: Text("Fecha")),
+                          DataColumn(label: Text("Inventario")),
+                          DataColumn(label: Text("Serie")),
+                          DataColumn(label: Text("Año de antigüedad")),
+                          DataColumn(label: Text("RPE Usuario")),
+                          DataColumn(label: Text("Fotografías físicas (6)")),
+                          DataColumn(label: Text("Etiqueta Activo Fijo")),
+                          DataColumn(label: Text("Chip con serie Tableta")),
+                          DataColumn(label: Text("Foto de carcasa")),
+                          DataColumn(label: Text("APN")),
+                          DataColumn(label: Text("Correo GMAIL")),
+                          DataColumn(label: Text("Seguridad de desbloqueo")),
+                          DataColumn(label: Text("Coincide Serie, SIM, IMEI")),
+                          DataColumn(label: Text("Responsiva APN")),
+                          DataColumn(label: Text("Centro de trabajo correcto")),
+                          DataColumn(label: Text("Responsiva")),
+                          DataColumn(label: Text("Serie correcta en SISTIC")),
+                          DataColumn(label: Text("Serie correcta en SIITIC")),
+                          DataColumn(label: Text("Asignación de RPE vs MySAP")),
+                          DataColumn(label: Text("TOTAL")),
+                        ],
+                        rows: _terminales.map((terminal) {
+                          final data = _supervisionData[terminal.id] ?? {};
+                          return DataRow(cells: [
+                            DataCell(
+                                Text(data["fecha"]?.split("T").first ?? "-")),
+                            DataCell(Text(terminal.inventario)),
+                            DataCell(Text(terminal.serie)),
+                            DataCell(Text(data["anio_antiguedad"] ?? "-")),
+                            DataCell(Text(data["rpe_usuario"] ?? "-")),
+                            DataCell(
+                                Text('${data["fotografias_fisicas"] ?? "-"}')),
+                            _buildBoolCell(data["etiqueta_activo_fijo"]),
+                            _buildBoolCell(data["chip_con_serie_tableta"]),
+                            _buildBoolCell(data["foto_carcasa"]),
+                            _buildBoolCell(data["apn"]),
+                            _buildBoolCell(data["correo_gmail"]),
+                            _buildBoolCell(data["seguridad_desbloqueo"]),
+                            _buildBoolCell(data["coincide_serie_sim_imei"]),
+                            _buildBoolCell(data["responsiva_apn"]),
+                            _buildBoolCell(data["centro_trabajo_correcto"]),
+                            _buildBoolCell(data["responsiva"]),
+                            _buildBoolCell(data["serie_correcta_sistic"]),
+                            _buildBoolCell(data["serie_correcta_siitic"]),
+                            _buildBoolCell(data["asignacion_rpe_mysap"]),
+                            DataCell(Text(data["total"]?.toString() ?? "0")),
+                          ]);
+                        }).toList(),
+                      ),
+                    ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  DataCell _buildBoolCell(dynamic value) {
+    final display = (value == 1) ? "Sí" : "No";
+    return DataCell(Text(display));
   }
 }

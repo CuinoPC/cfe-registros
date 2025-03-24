@@ -202,19 +202,19 @@ class _CustomAppBarState extends State<CustomAppBar> {
             title: const Text("Lista de Terminales"),
           ),
         ),
-        PopupMenuItem(
+        const PopupMenuItem(
           value: "Terminales Dañadas",
           child: ListTile(
             leading: Icon(Icons.warning, color: Colors.redAccent),
-            title: const Text("Terminales Dañadas"),
+            title: Text("Terminales Dañadas"),
           ),
         ),
-        PopupMenuItem(
+        const PopupMenuItem(
           // ✅ Nueva opción agregada
           value: "Reporte de Supervisión",
           child: ListTile(
             leading: Icon(Icons.assignment, color: Colors.blueAccent),
-            title: const Text("Reporte de Supervisión"),
+            title: Text("Reporte de Supervisión"),
           ),
         ),
       ],
@@ -224,9 +224,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
           color: Colors.green.shade500,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Row(
+        child: const Row(
           children: [
-            const Text(
+            Text(
               "TPS",
               style: TextStyle(
                 fontSize: 16,
@@ -234,8 +234,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 color: Colors.white,
               ),
             ),
-            const SizedBox(width: 5),
-            const Icon(Icons.arrow_drop_down, color: Colors.white),
+            SizedBox(width: 5),
+            Icon(Icons.arrow_drop_down, color: Colors.white),
           ],
         ),
       ),

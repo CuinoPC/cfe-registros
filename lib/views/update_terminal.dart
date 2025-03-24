@@ -96,7 +96,6 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
           // 🔹 Si es jefe de centro, ver solo usuarios terminales de su área
           _usuariosTerminal = usuarios
               .where((user) =>
-                  user['es_centro'] == false &&
                   user['es_admin'] == false &&
                   user['nom_area'] == currentUserArea)
               .toList();
