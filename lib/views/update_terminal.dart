@@ -24,13 +24,16 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
 
   List<Map<String, dynamic>> _usuarios = [];
   List<Terminal> _terminales = [];
-  List<Map<String, dynamic>> _responsables = []; // Solo jefes de centro
-  List<Map<String, dynamic>> _usuariosTerminal = []; // Solo usuarios terminales
+  List<Map<String, dynamic>> _responsables = [];
+  List<Map<String, dynamic>> _usuariosTerminal = [];
+  List<Map<String, dynamic>> _areas = [];
 
   int? _selectedResponsableId;
+  int? _selectedAreaId;
   String _selectedResponsableRP = "";
   String _selectedResponsableNombre = "";
   String _selectedArea = "";
+  String _selectedAreaNombre = "";
 
   int? _selectedUsuarioId; // Usuario que usará la terminal
 
@@ -45,9 +48,20 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
     inventarioController.text = widget.terminal.inventario;
     _selectedResponsableId = null;
     _selectedUsuarioId = widget.terminal.usuarioId;
+    _selectedArea = widget.terminal.area;
 
     _loadUsuariosYTerminales();
-    _loadAdminStatus(); // ✅ Cargar si el usuario es admin
+    _loadAreas();
+    _loadAdminStatus();
+  }
+
+  Future<void> _loadAreas() async {
+    List<Map<String, dynamic>>? areas = await _ApiUserService.getAreas();
+    if (areas != null) {
+      setState(() {
+        _areas = areas;
+      });
+    }
   }
 
   Future<void> _loadAdminStatus() async {
@@ -118,25 +132,26 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
   void _filtrarUsuariosPorResponsable() {
     if (_selectedResponsableId != null) {
       var responsable = _responsables.firstWhere(
-          (user) => user['id'] == _selectedResponsableId,
-          orElse: () => {});
+        (user) => user['id'] == _selectedResponsableId,
+        orElse: () => {},
+      );
+
       String areaResponsable = responsable['nom_area'] ?? "No disponible";
 
       setState(() {
         _usuariosTerminal = _usuarios
             .where((user) =>
-                user['es_centro'] == false &&
-                user['es_admin'] == false &&
-                user['nom_area'] == areaResponsable)
+                user['nom_area'] == areaResponsable &&
+                user['es_admin'] == false)
             .toList();
+
+        // ✅ Incluir al responsable también en la lista si no es admin
+        if (responsable['es_admin'] != true &&
+            !_usuariosTerminal.any((u) => u['id'] == responsable['id'])) {
+          _usuariosTerminal.add(responsable);
+        }
       });
     }
-  }
-
-  String _getAreaUsuario(int usuarioId) {
-    var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
-        orElse: () => {'nom_area': "No disponible"});
-    return usuario['nom_area'].toString();
   }
 
   Future<void> _updateTerminal() async {
@@ -166,28 +181,11 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
       modelo,
       serie,
       inventario,
-      _selectedResponsableRP, // Nuevo RP del responsable
-      _selectedResponsableNombre, // Nuevo nombre del responsable
-      _selectedUsuarioId!, // Usuario terminal
+      _selectedResponsableRP,
+      _selectedResponsableNombre,
+      _selectedUsuarioId!,
+      _selectedArea,
     );
-
-    // ✅ 2. SI EL RESPONSABLE CAMBIÓ, ACTUALIZAR LAS TERMINALES RELACIONADAS
-    if (success && (_selectedResponsableRP != widget.terminal.rpeResponsable)) {
-      for (var terminal in _terminales) {
-        if (terminal.rpeResponsable == widget.terminal.rpeResponsable) {
-          await _ApiTerminalService.updateTerminal(
-            terminal.id,
-            terminal.marca,
-            terminal.modelo,
-            terminal.serie,
-            terminal.inventario,
-            _selectedResponsableRP, // ✅ Nuevo RP del responsable
-            _selectedResponsableNombre, // ✅ Nuevo nombre del responsable
-            terminal.usuarioId, // ❌ No cambiar el usuario terminal
-          );
-        }
-      }
-    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -288,6 +286,67 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      DropdownButtonFormField<int>(
+                        decoration: InputDecoration(
+                          labelText: "Área",
+                          prefixIcon:
+                              const Icon(Icons.work, color: Colors.teal),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        value: _selectedAreaId,
+                        items: _areas.map((area) {
+                          return DropdownMenuItem<int>(
+                            value: area['id'],
+                            child: Text(area['nom_area']),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedAreaId = value!;
+                            _selectedAreaNombre = _areas.firstWhere(
+                                  (a) => a['id'] == value,
+                                  orElse: () => {'nom_area': 'No disponible'},
+                                )['nom_area'] ??
+                                'No disponible';
+
+                            _selectedArea = _selectedAreaNombre;
+
+                            // 🔹 Jefe de centro del área
+                            final jefe = _responsables.firstWhere(
+                              (r) => r['nom_area'] == _selectedArea,
+                              orElse: () => {},
+                            );
+
+                            _selectedResponsableId = jefe['id'];
+                            _selectedResponsableRP = jefe['rp'] ?? "";
+                            _selectedResponsableNombre =
+                                jefe['nombre_completo'] ?? "";
+
+                            // 🔹 Usuarios terminales de esa área
+                            _usuariosTerminal = _usuarios
+                                .where((user) =>
+                                    user['nom_area'] == _selectedArea &&
+                                    user['es_admin'] == false)
+                                .toList();
+
+// 🔹 Agregar también al jefe de centro (si no es admin y no está duplicado)
+                            final jefeCentro = _responsables.firstWhere(
+                              (r) => r['nom_area'] == _selectedArea,
+                              orElse: () => {},
+                            );
+
+                            if (jefeCentro.isNotEmpty &&
+                                !_usuariosTerminal
+                                    .any((u) => u['id'] == jefeCentro['id'])) {
+                              _usuariosTerminal.add(jefeCentro);
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
                       // 🔽 Mostrar campo de Responsable SOLO si el usuario es admin
                       if (_esAdmin)
                         Column(
@@ -305,11 +364,14 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                                       user['id'] == _selectedResponsableId)
                                   ? _selectedResponsableId
                                   : null, // ✅ Evita error si el ID no está en la lista
-                              items: _responsables.map((usuario) {
+                              items: _responsables
+                                  .where((usuario) =>
+                                      usuario['nom_area'] == _selectedArea)
+                                  .map((usuario) {
                                 return DropdownMenuItem<int>(
                                   value: usuario['id'],
                                   child: Text(
-                                    "${usuario['nombre_completo']} - ${usuario['nom_area']}", // ✅ Ahora muestra el Área en lugar del RP
+                                    "${usuario['nombre_completo']} - ${usuario['nom_area']}",
                                   ),
                                 );
                               }).toList(),
@@ -322,9 +384,11 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                                   _selectedResponsableRP = usuario['rp'] ?? "";
                                   _selectedResponsableNombre =
                                       usuario['nombre_completo'] ?? "";
+                                  _selectedArea = usuario['nom_area'] ??
+                                      "No disponible"; // ✅ área actualizada
                                 });
 
-                                _filtrarUsuariosPorResponsable(); // 🔥 Filtrar usuarios terminales cuando cambie el responsable
+                                _filtrarUsuariosPorResponsable();
                               },
                             ),
                             const SizedBox(height: 16),

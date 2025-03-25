@@ -248,7 +248,7 @@ class _HistorialPageState extends State<HistorialPage> {
                       DataColumn(label: Text("Responsable (RPE)")),
                       DataColumn(label: Text("Nombre Responsable")),
                       DataColumn(label: Text("Usuario (RP)")),
-                      DataColumn(label: Text("Área del Usuario")),
+                      DataColumn(label: Text("Área")),
                       DataColumn(label: Text("Fecha")),
                     ],
                     rows: _filteredHistorial.asMap().entries.map((entry) {

@@ -27,8 +27,15 @@ class TerminalService {
     return null;
   }
 
-  Future<bool> createTerminal(String marca, String modelo, String serie,
-      String inventario, String rpe, String nombre, int usuarioId) async {
+  Future<bool> createTerminal(
+      String marca,
+      String modelo,
+      String serie,
+      String inventario,
+      String rpe,
+      String nombre,
+      int usuarioId,
+      String area) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
@@ -43,15 +50,24 @@ class TerminalService {
         "inventario": inventario,
         "rpe_responsable": rpe,
         "nombre_responsable": nombre,
-        "usuario_id": usuarioId
+        "usuario_id": usuarioId,
+        "area": area
       }),
     );
 
     return response.statusCode == 201;
   }
 
-  Future<bool> updateTerminal(int id, String marca, String modelo, String serie,
-      String inventario, String rpe, String nombre, int usuarioId) async {
+  Future<bool> updateTerminal(
+      int id,
+      String marca,
+      String modelo,
+      String serie,
+      String inventario,
+      String rpe,
+      String nombre,
+      int usuarioId,
+      String area) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
@@ -66,7 +82,8 @@ class TerminalService {
         "inventario": inventario,
         "rpe_responsable": rpe,
         "nombre_responsable": nombre,
-        "usuario_id": usuarioId
+        "usuario_id": usuarioId,
+        "area": area
       }),
     );
 

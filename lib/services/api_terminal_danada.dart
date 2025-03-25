@@ -9,7 +9,7 @@ class TerminalDanadaService {
   final String baseUrl = "http://localhost:5000/api";
 
   Future<bool> marcarTerminalDanada(int terminalId, String marca, String modelo,
-      String serie, String inventario) async {
+      String area, String serie, String inventario) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
@@ -21,6 +21,7 @@ class TerminalDanadaService {
         "terminalId": terminalId,
         "marca": marca,
         "modelo": modelo,
+        "area": area,
         "serie": serie,
         "inventario": inventario,
       }),
@@ -70,6 +71,7 @@ class TerminalDanadaService {
         'costo': terminal.costo,
         'piezasReparadas': terminal.piezasReparadas,
         'observaciones': terminal.observaciones,
+        'ticket': terminal.ticket,
       }),
     );
 

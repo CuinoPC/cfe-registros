@@ -113,10 +113,7 @@ class _TerminalListState extends State<TerminalList> {
                   _searchQuery ||
               _getRpUsuario(terminal.usuarioId).trim().toLowerCase() ==
                   _searchQuery ||
-              _getAreaResponsablePorRP(terminal.rpeResponsable)
-                      .trim()
-                      .toLowerCase() ==
-                  _searchQuery;
+              terminal.area.trim().toLowerCase() == _searchQuery;
         }).toList();
       }
     });
@@ -164,19 +161,6 @@ class _TerminalListState extends State<TerminalList> {
     var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
         orElse: () => {'rp': "No disponible"});
     return usuario['rp'].toString();
-  }
-
-  // 🔹 Obtener el área del Responsable
-  String _getAreaResponsablePorRP(String rpResponsable) {
-    var responsable = _usuarios.firstWhere(
-        (user) =>
-            user['rp'].toString().trim().toLowerCase() ==
-            rpResponsable.trim().toLowerCase(),
-        orElse: () => {'nom_area': "No disponible"});
-
-    String area = responsable['nom_area']?.trim() ?? "No disponible";
-
-    return area;
   }
 
   Future<void> _deleteTerminal(int id) async {
@@ -246,6 +230,7 @@ class _TerminalListState extends State<TerminalList> {
           terminal.id,
           terminal.marca,
           terminal.modelo,
+          terminal.area,
           terminal.serie,
           terminal.inventario);
 
@@ -444,8 +429,7 @@ class _TerminalListState extends State<TerminalList> {
                                   const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
-                          DataCell(Text(_getAreaResponsablePorRP(
-                              terminal.rpeResponsable))),
+                          DataCell(Text(terminal.area)),
                           DataCell(
                             TextButton(
                               onPressed: () {

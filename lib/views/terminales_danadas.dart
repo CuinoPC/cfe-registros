@@ -1,6 +1,7 @@
 import 'package:cfe_registros/models/terminal_danada.dart';
 import 'package:cfe_registros/services/api_piezas_tps.dart';
 import 'package:cfe_registros/services/api_terminal_danada.dart';
+import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:cfe_registros/views/piezas_tps_page.dart';
 import 'package:cfe_registros/views/terminales_costo.dart';
@@ -24,6 +25,8 @@ class TerminalesDanadasPage extends StatefulWidget {
 class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
   List<TerminalDanada> _terminalesDanadas = [];
   List<TerminalDanada> _filteredTerminalesDanadas = [];
+  List<Map<String, dynamic>> _usuarios = [];
+  final ApiUserService _apiUserService = ApiUserService();
   final TerminalDanadaService _apiDanadasService = TerminalDanadaService();
   final PiezasTPSService _piezasService = PiezasTPSService();
 
@@ -40,9 +43,12 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
   Future<void> _cargarDatos() async {
     List<TerminalDanada> terminales =
         await _apiDanadasService.getTerminalesDanadas();
+    List<Map<String, dynamic>> usuarios =
+        await _apiUserService.getUsers() ?? [];
     setState(() {
       _terminalesDanadas = terminales;
       _filteredTerminalesDanadas = terminales;
+      _usuarios = usuarios;
       _isLoading = false;
     });
   }
@@ -145,8 +151,6 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
             break;
         }
       });
-
-      print("Fecha seleccionada ($field): $formattedDate");
 
       // ✅ Enviar actualización al backend
       await _apiDanadasService.updateTerminalDanada(terminal);
@@ -331,8 +335,10 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                             DataColumn(
                                 label: Text(
                                     "#")), // 📌 Nueva columna para numeración
+                            DataColumn(label: Text("Ticket")),
                             DataColumn(label: Text("Marca")),
                             DataColumn(label: Text("Modelo")),
+                            DataColumn(label: Text("Área")),
                             DataColumn(label: Text("Serie")),
                             DataColumn(label: Text("Inventario")),
                             DataColumn(label: Text("Fecha Reporte")),
@@ -352,8 +358,10 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                             return DataRow(cells: [
                               DataCell(Text(
                                   "${index + 1}")), // 📌 Numeración de filas
+                              _buildEditableTextCell(terminal, "ticket"),
                               DataCell(Text(terminal.marca)),
                               DataCell(Text(terminal.modelo)),
+                              DataCell(Text(terminal.area)),
                               DataCell(Text(terminal.serie)),
                               DataCell(Text(terminal.inventario)),
                               _buildEditableDateCell(terminal, "fechaReporte"),
@@ -501,11 +509,14 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
               terminal.piezasReparadas = value;
             } else if (field == "observaciones") {
               terminal.observaciones = value;
+            } else if (field == "ticket") {
+              terminal.ticket = value; // ✅ NUEVO CAMPO
             }
           });
         },
         onFieldSubmitted: (value) {
-          _apiDanadasService.updateTerminalDanada(terminal);
+          _apiDanadasService
+              .updateTerminalDanada(terminal); // ✅ Se guarda al salir del campo
         },
       ),
     );

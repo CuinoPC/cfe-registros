@@ -3,6 +3,7 @@ class TerminalDanada {
   final int terminalId;
   final String marca;
   final String modelo;
+  final String area;
   final String serie;
   final String inventario;
   String? fechaReporte;
@@ -15,12 +16,14 @@ class TerminalDanada {
   String piezasReparadas;
   String observaciones;
   String archivoPdf;
+  String ticket;
 
   TerminalDanada(
       {required this.id,
       required this.terminalId,
       required this.marca,
       required this.modelo,
+      required this.area,
       required this.serie,
       required this.inventario,
       this.fechaReporte,
@@ -32,7 +35,8 @@ class TerminalDanada {
       this.costo = 0.0,
       required this.piezasReparadas,
       required this.observaciones,
-      required this.archivoPdf});
+      required this.archivoPdf,
+      required this.ticket});
 
   /// 📌 Convertir un objeto TerminalDanada a un mapa para usar en la interfaz
   Map<String, dynamic> toMap() {
@@ -41,6 +45,7 @@ class TerminalDanada {
       "terminal_id": terminalId,
       "marca": marca,
       "modelo": modelo,
+      "area": area,
       "serie": serie,
       "inventario": inventario,
       "fechaReporte": fechaReporte,
@@ -53,6 +58,7 @@ class TerminalDanada {
       "piezasReparadas": piezasReparadas,
       "observaciones": observaciones,
       "archivoPdf": archivoPdf,
+      "ticket": ticket,
     };
   }
 
@@ -63,6 +69,7 @@ class TerminalDanada {
       terminalId: json['terminal_id'],
       marca: json['marca'],
       modelo: json['modelo'],
+      area: json['area'] ?? 'No disponible',
       serie: json['serie'],
       inventario: json['inventario'],
       fechaReporte: json['fecha_reporte'],
@@ -78,6 +85,7 @@ class TerminalDanada {
       piezasReparadas: json['piezas_reparadas'] ?? '',
       observaciones: json['observaciones'] ?? '',
       archivoPdf: json['archivo_pdf'] ?? '',
+      ticket: json['ticket'] ?? '',
     );
   }
 }

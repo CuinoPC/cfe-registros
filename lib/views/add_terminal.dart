@@ -20,10 +20,14 @@ class _AddTerminalState extends State<AddTerminal> {
   List<Map<String, dynamic>> _usuarios = [];
   List<Map<String, dynamic>> _responsables = [];
   List<Map<String, dynamic>> _usuariosTerminal = [];
+  List<Map<String, dynamic>> _areas = [];
 
   int? _selectedResponsableId;
+  int? _selectedAreaId;
   String _selectedResponsableRP = "";
   String _selectedResponsableNombre = "";
+  String _areaResponsable = "";
+  String _selectedAreaNombre = "";
 
   int? _selectedUsuarioId;
   bool _esAdmin = false;
@@ -32,7 +36,17 @@ class _AddTerminalState extends State<AddTerminal> {
   void initState() {
     super.initState();
     _loadUsuarios();
-    _loadAdminStatus(); // ✅ Cargar si el usuario es admin
+    _loadAreas();
+    _loadAdminStatus();
+  }
+
+  Future<void> _loadAreas() async {
+    List<Map<String, dynamic>>? areas = await _ApiUserService.getAreas();
+    if (areas != null) {
+      setState(() {
+        _areas = areas;
+      });
+    }
   }
 
   Future<void> _loadUsuarios() async {
@@ -82,6 +96,12 @@ class _AddTerminalState extends State<AddTerminal> {
                 user['es_admin'] == false &&
                 user['nom_area'] == areaResponsable)
             .toList();
+
+        // ✅ Incluir también al responsable si no es admin
+        if (responsable['es_admin'] != true &&
+            !_usuariosTerminal.any((u) => u['id'] == responsable['id'])) {
+          _usuariosTerminal.add(responsable);
+        }
       });
     }
   }
@@ -123,6 +143,7 @@ class _AddTerminalState extends State<AddTerminal> {
       _selectedResponsableRP,
       _selectedResponsableNombre,
       _selectedUsuarioId!,
+      _areaResponsable,
     );
 
     if (success) {
@@ -231,6 +252,63 @@ class _AddTerminalState extends State<AddTerminal> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      DropdownButtonFormField<int>(
+                        decoration: InputDecoration(
+                          labelText: "Área",
+                          prefixIcon:
+                              const Icon(Icons.work, color: Colors.teal),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        value: _selectedAreaId,
+                        items: _areas.map((area) {
+                          return DropdownMenuItem<int>(
+                            value: area['id'],
+                            child: Text(area['nom_area']),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedAreaId = value!;
+                            _selectedAreaNombre = _areas.firstWhere(
+                                  (a) => a['id'] == value,
+                                  orElse: () => {'nom_area': 'No disponible'},
+                                )['nom_area'] ??
+                                "No disponible";
+
+                            _areaResponsable = _selectedAreaNombre;
+
+                            // 🔹 Filtrar responsables de esta área (jefe de centro)
+                            final responsablesDeArea = _responsables
+                                .where((u) => u['area_id'] == value)
+                                .toList();
+
+                            _selectedResponsableId =
+                                responsablesDeArea.isNotEmpty
+                                    ? responsablesDeArea.first['id']
+                                    : null;
+                            _selectedResponsableRP =
+                                responsablesDeArea.isNotEmpty
+                                    ? responsablesDeArea.first['rp']
+                                    : "";
+                            _selectedResponsableNombre = responsablesDeArea
+                                    .isNotEmpty
+                                ? responsablesDeArea.first['nombre_completo']
+                                : "";
+
+                            // 🔹 Filtrar usuarios terminales de esa área (no admins ni jefes)
+                            _usuariosTerminal = _usuarios
+                                .where((u) =>
+                                    u['area_id'] == value &&
+                                    u['es_admin'] == false &&
+                                    u['es_centro'] == false)
+                                .toList();
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
 
                       // 🔽 Mostrar campo de Responsable SOLO si el usuario es admin
                       if (_esAdmin)
@@ -246,12 +324,14 @@ class _AddTerminalState extends State<AddTerminal> {
                                 ),
                               ),
                               value: _selectedResponsableId,
-                              items: _responsables.map((usuario) {
+                              items: _responsables
+                                  .where((usuario) =>
+                                      usuario['nom_area'] == _areaResponsable)
+                                  .map((usuario) {
                                 return DropdownMenuItem<int>(
                                   value: usuario['id'],
                                   child: Text(
-                                    "${usuario['nombre_completo']} - ${usuario['nom_area']}", // ✅ Ahora muestra el Área en lugar del RP
-                                  ),
+                                      "${usuario['nombre_completo']} - ${usuario['nom_area']}"),
                                 );
                               }).toList(),
                               onChanged: (value) {
@@ -263,9 +343,10 @@ class _AddTerminalState extends State<AddTerminal> {
                                   _selectedResponsableRP = usuario['rp'] ?? "";
                                   _selectedResponsableNombre =
                                       usuario['nombre_completo'] ?? "";
+                                  _areaResponsable = usuario['nom_area'] ?? "";
                                 });
 
-                                _filtrarUsuariosPorResponsable(); // 🔥 Filtrar usuarios terminales cuando cambie el responsable
+                                _filtrarUsuariosPorResponsable();
                               },
                             ),
                             const SizedBox(height: 16),

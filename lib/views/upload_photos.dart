@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:cfe_registros/services/api_terminal.dart';
-import 'package:cfe_registros/services/api_terminales.dart';
 import 'package:cfe_registros/services/api_terminales_supervision.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:data_table_2/data_table_2.dart';
