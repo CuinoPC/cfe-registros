@@ -125,7 +125,10 @@ class _UserListState extends State<UserList> {
                           (states) => Colors.teal.shade100),
                       border: TableBorder.all(color: Colors.grey),
                       columns: const [
-                        DataColumn(label: Text("#")),
+                        DataColumn2(
+                          label: Text("#"),
+                          fixedWidth: 50,
+                        ),
                         DataColumn(label: Text("Nombre")),
                         DataColumn(label: Text("RP")),
                         DataColumn(label: Text("Área")),
@@ -133,7 +136,10 @@ class _UserListState extends State<UserList> {
                         DataColumn(label: Text("Contraseña")),
                         DataColumn(label: Text("Admin")),
                         DataColumn(label: Text("Jefe de centro")),
-                        DataColumn(label: Text("Opciones")),
+                        DataColumn2(
+                          label: Text("Opciones"),
+                          fixedWidth: 100,
+                        ),
                       ],
                       rows: _filteredUsers.asMap().entries.map((entry) {
                         int index = entry.key + 1;
@@ -142,10 +148,10 @@ class _UserListState extends State<UserList> {
 
                         return DataRow(cells: [
                           DataCell(Text(index.toString())),
-                          DataCell(Text(user['nombre_completo'])),
-                          DataCell(Text(rp)),
-                          DataCell(Text(user['nom_area'])),
-                          DataCell(Text(user['proceso'])),
+                          DataCell(SelectableText(user['nombre_completo'])),
+                          DataCell(SelectableText(rp)),
+                          DataCell(SelectableText(user['nom_area'])),
+                          DataCell(SelectableText(user['proceso'])),
                           DataCell(
                             Row(
                               children: [

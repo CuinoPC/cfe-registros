@@ -4,8 +4,8 @@ import 'package:cfe_registros/services/api_terminal_danada.dart';
 import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:cfe_registros/views/historial_page.dart';
-import 'package:cfe_registros/views/upload_photos.dart';
-import 'package:cfe_registros/views/view_photos.dart';
+import 'package:cfe_registros/views/add_supervision.dart';
+import 'package:cfe_registros/views/view_supervision.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -397,7 +397,10 @@ class _TerminalListState extends State<TerminalList> {
                           (states) => Colors.teal.shade100),
                       border: TableBorder.all(color: Colors.grey),
                       columns: const [
-                        DataColumn(label: Text("#")),
+                        DataColumn2(
+                          label: Text("#"),
+                          fixedWidth: 50,
+                        ),
                         DataColumn(label: Text("Marca")),
                         DataColumn(label: Text("Modelo")),
                         DataColumn(label: Text("Serie")),
@@ -406,30 +409,43 @@ class _TerminalListState extends State<TerminalList> {
                         DataColumn(label: Text("Nombre Responsable")),
                         DataColumn(label: Text("Usuario (RP)")),
                         DataColumn(label: Text("Área")),
-                        DataColumn(label: Text("Fotos")),
-                        DataColumn(label: Text("Fotos Nuevas")),
-                        DataColumn(label: Text("Dañada")),
-                        DataColumn(label: Text("Opciones")),
+                        DataColumn2(
+                          label: Text("Supervisión"),
+                          fixedWidth: 165,
+                        ),
+                        DataColumn2(
+                          label: Text("Supervisión Nueva"),
+                          fixedWidth: 225,
+                        ),
+                        DataColumn2(
+                          label: Text("Dañada"),
+                          fixedWidth: 80,
+                        ),
+                        DataColumn2(
+                          label: Text("Opciones"),
+                          fixedWidth: 100,
+                        ),
                       ],
                       rows: _filteredTerminales.asMap().entries.map((entry) {
                         int index = entry.key + 1;
                         Terminal terminal = entry.value;
                         return DataRow(cells: [
                           DataCell(Text(index.toString())),
-                          DataCell(Text(terminal.marca)),
-                          DataCell(Text(terminal.modelo)),
-                          DataCell(Text(terminal.serie)),
-                          DataCell(Text(terminal.inventario)),
-                          DataCell(Text(terminal.rpeResponsable.toString())),
-                          DataCell(Text(terminal.nombreResponsable)),
+                          DataCell(SelectableText(terminal.marca)),
+                          DataCell(SelectableText(terminal.modelo)),
+                          DataCell(SelectableText(terminal.serie)),
+                          DataCell(SelectableText(terminal.inventario)),
+                          DataCell(SelectableText(
+                              terminal.rpeResponsable.toString())),
+                          DataCell(SelectableText(terminal.nombreResponsable)),
                           DataCell(
-                            Text(
+                            SelectableText(
                               "${_getNombreUsuario(terminal.usuarioId)} (RP: ${_getRpUsuario(terminal.usuarioId)})",
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
-                          DataCell(Text(terminal.area)),
+                          DataCell(SelectableText(terminal.area)),
                           DataCell(
                             TextButton(
                               onPressed: () {
@@ -442,8 +458,8 @@ class _TerminalListState extends State<TerminalList> {
                               },
                               child: Text(
                                 terminal.fotos.isNotEmpty
-                                    ? "Ver Fotos"
-                                    : "Cargar Fotos",
+                                    ? "Ver Supervisión"
+                                    : "Subir Supervisión",
                                 style: TextStyle(
                                   color: terminal.fotos.isNotEmpty
                                       ? Colors.green
@@ -461,7 +477,7 @@ class _TerminalListState extends State<TerminalList> {
                                       _navigateToUploadPhotos(terminal.id);
                                     },
                                     child: const Text(
-                                      "Cargar Fotos Nuevas",
+                                      "Cargar Supervisión Nueva",
                                       style: TextStyle(
                                           color: Colors.orange,
                                           fontWeight: FontWeight.bold),
@@ -469,15 +485,17 @@ class _TerminalListState extends State<TerminalList> {
                                   ),
                           ),
                           DataCell(
-                            Checkbox(
-                              value: _terminalesDanadas.contains(terminal),
-                              onChanged: _terminalesDanadas.contains(terminal)
-                                  ? null // 🔒 Ya está marcada, deshabilita el cambio
-                                  : (bool? value) {
-                                      if (value == true) {
-                                        _marcarTerminalDanada(terminal, true);
-                                      }
-                                    },
+                            Center(
+                              child: Checkbox(
+                                value: _terminalesDanadas.contains(terminal),
+                                onChanged: _terminalesDanadas.contains(terminal)
+                                    ? null
+                                    : (bool? value) {
+                                        if (value == true) {
+                                          _marcarTerminalDanada(terminal, true);
+                                        }
+                                      },
+                              ),
                             ),
                           ),
                           DataCell(

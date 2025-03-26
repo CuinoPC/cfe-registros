@@ -14,9 +14,8 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: NetworkImage(
-                "https://i.postimg.cc/fTrdcMVH/T3-OMDP4-AC5-GWPJMQKJ4-RJ6-YM6-E.jpg"),
-            fit: BoxFit.cover, // Ajusta la imagen para cubrir toda la pantalla
+            image: AssetImage("assets/CFE.jpg"),
+            fit: BoxFit.cover,
           ),
         ),
       ),

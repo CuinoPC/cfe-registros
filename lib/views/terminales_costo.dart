@@ -46,7 +46,9 @@ class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
       // 🔹 Buscar por número de serie o inventario
       filtradas = terminales.where((t) {
         return t.serie.trim().toLowerCase() == _searchQuery.toLowerCase() ||
-            t.inventario.trim().toLowerCase() == _searchQuery.toLowerCase();
+            t.inventario.trim().toLowerCase() == _searchQuery.toLowerCase() ||
+            t.area.trim().toLowerCase() == _searchQuery.toLowerCase() ||
+            t.ticket.trim().toLowerCase() == _searchQuery.toLowerCase();
       }).toList();
     }
 
@@ -96,7 +98,8 @@ class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
             TextField(
               onChanged: _buscarTerminales,
               decoration: InputDecoration(
-                labelText: "Buscar por número de serie, inventario o año",
+                labelText:
+                    "Buscar por número de serie, inventario, área, ticket o año",
                 prefixIcon: const Icon(Icons.search, color: Colors.teal),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -118,7 +121,7 @@ class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
                       Icon(Icons.search, size: 80, color: Colors.grey.shade500),
                       const SizedBox(height: 10),
                       const Text(
-                        "Ingrese un número de serie, inventario o año para buscar terminales dañadas.",
+                        "Ingrese un número de número de serie, inventario, área, ticket o año para buscar terminales dañadas.",
                         style: TextStyle(fontSize: 16, color: Colors.black54),
                         textAlign: TextAlign.center,
                       ),
@@ -156,24 +159,24 @@ class _CostosTerminalesPageState extends State<CostosTerminalesPage> {
                         (states) => Colors.teal.shade100),
                     border: TableBorder.all(color: Colors.grey),
                     columns: const [
+                      DataColumn(label: Text("Area")),
+                      DataColumn(label: Text("Ticket")),
                       DataColumn(label: Text("Serie")),
-                      DataColumn(label: Text("Marca")),
-                      DataColumn(label: Text("Modelo")),
                       DataColumn(label: Text("Inventario")),
                       DataColumn(label: Text("Fecha Reparación")),
                       DataColumn(label: Text("Costo")),
                     ],
                     rows: _terminalesFiltradas.map((terminal) {
                       return DataRow(cells: [
-                        DataCell(Text(terminal.serie)),
-                        DataCell(Text(terminal.marca)),
-                        DataCell(Text(terminal.modelo)),
-                        DataCell(Text(terminal.inventario)),
-                        DataCell(Text(terminal.fechaReparacion != null
+                        DataCell(SelectableText(terminal.area)),
+                        DataCell(SelectableText(terminal.ticket)),
+                        DataCell(SelectableText(terminal.serie)),
+                        DataCell(SelectableText(terminal.inventario)),
+                        DataCell(SelectableText(terminal.fechaReparacion != null
                             ? DateFormat("dd/MM/yyyy").format(
                                 DateTime.parse(terminal.fechaReparacion!))
                             : "N/A")),
-                        DataCell(Text(
+                        DataCell(SelectableText(
                             "\$${terminal.costo?.toStringAsFixed(2) ?? '0.00'}")),
                       ]);
                     }).toList(),

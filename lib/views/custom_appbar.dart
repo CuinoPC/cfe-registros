@@ -59,8 +59,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
               SizedBox(
                 width: 150,
                 height: 70,
-                child: Image.network(
-                  'https://i.postimg.cc/MGpN8QmY/logo-CFE-DISTRIBUCI-N-1.png',
+                child: Image.asset(
+                  'assets/logoCFE.png',
                   fit: BoxFit.contain,
                   color: Colors.green.shade300,
                   colorBlendMode: BlendMode.multiply,

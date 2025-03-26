@@ -92,14 +92,42 @@ class _ViewPhotosPageState extends State<ViewPhotosPage> {
                                   ),
                                   itemCount: fotos.length,
                                   itemBuilder: (context, i) {
-                                    return Image.network(
-                                      "http://localhost:5000${fotos[i]}",
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return const Icon(Icons.broken_image,
-                                            size: 50, color: Colors.red);
+                                    return GestureDetector(
+                                      onTap: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => Dialog(
+                                            backgroundColor: Colors.transparent,
+                                            child: InteractiveViewer(
+                                              child: Image.network(
+                                                "http://localhost:5000${fotos[i]}",
+                                                fit: BoxFit.contain,
+                                                errorBuilder: (context, error,
+                                                    stackTrace) {
+                                                  return const Icon(
+                                                      Icons.broken_image,
+                                                      size: 50,
+                                                      color: Colors.red);
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                        );
                                       },
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          "http://localhost:5000${fotos[i]}",
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return const Icon(
+                                                Icons.broken_image,
+                                                size: 50,
+                                                color: Colors.red);
+                                          },
+                                        ),
+                                      ),
                                     );
                                   },
                                 ),
@@ -111,9 +139,9 @@ class _ViewPhotosPageState extends State<ViewPhotosPage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
+                                      const Text(
                                         "📝 Supervisión registrada",
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold),
                                       ),

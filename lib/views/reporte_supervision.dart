@@ -1,10 +1,9 @@
-import 'package:cfe_registros/services/api_terminal.dart';
 import 'package:cfe_registros/services/api_terminales_supervision.dart';
+import 'package:cfe_registros/utils/pdf_generator.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import '../services/api_users.dart';
-import '../models/terminal.dart';
 
 class ReporteSupervision extends StatefulWidget {
   @override
@@ -12,14 +11,12 @@ class ReporteSupervision extends StatefulWidget {
 }
 
 class _ReporteSupervisionState extends State<ReporteSupervision> {
-  final TerminalService _apiTerminalService = TerminalService();
   final SupervisionService _supervisionService = SupervisionService();
   final ApiUserService _apiUserService = ApiUserService();
 
   List<Map<String, dynamic>> _areas = [];
   String? _selectedArea;
-  List<Terminal> _terminales = [];
-  Map<int, Map<String, dynamic>> _supervisionData = {};
+  List<Map<String, dynamic>> _supervisionesDeArea = [];
 
   @override
   void initState() {
@@ -36,29 +33,42 @@ class _ReporteSupervisionState extends State<ReporteSupervision> {
     }
   }
 
-  Future<void> _fetchTerminales(String area) async {
-    List<Terminal>? terminales =
-        await _apiTerminalService.getTerminalesPorArea(area);
-    if (terminales != null) {
-      setState(() {
-        _terminales = terminales;
-      });
-
-      // 🔄 Recuperar los datos guardados desde el backend
-      for (var terminal in terminales) {
-        final historial =
-            await _supervisionService.getHistorialSupervision(terminal.id);
-        if (historial.isNotEmpty) {
-          setState(() {
-            _supervisionData[terminal.id] = historial.first;
-          });
-        }
-      }
-    }
+  Future<void> _fetchSupervisionesPorArea(String area) async {
+    final supervisiones =
+        await _supervisionService.getSupervisionesPorArea(area);
+    setState(() {
+      _supervisionesDeArea = supervisiones;
+    });
   }
 
-  int calcularTotal(Map<String, dynamic> terminal) {
-    return terminal.values.where((value) => value == 1).length;
+  Future<void> _generarPDF() async {
+    if (_selectedArea == null) return;
+
+    final usuarios = await _apiUserService.getUsers();
+    final jefe = usuarios?.firstWhere(
+      (u) => u['es_centro'] == true && u['nom_area'] == _selectedArea,
+      orElse: () => <String, dynamic>{},
+    );
+
+    final jefeCentro = jefe != null && jefe.isNotEmpty
+        ? "${jefe['rp']}, ${jefe['nombre_completo']}"
+        : "No asignado";
+
+    const supervisorTIC = "9MAE4, ARTURO ALEJANDRO GIADANS PRIETO";
+
+    if (_supervisionesDeArea.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No hay supervisiones para esta área")),
+      );
+      return;
+    }
+
+    await generarPDFReporte(
+      area: _selectedArea!,
+      supervisiones: _supervisionesDeArea,
+      supervisorTIC: supervisorTIC,
+      jefeCentro: jefeCentro,
+    );
   }
 
   @override
@@ -69,18 +79,12 @@ class _ReporteSupervisionState extends State<ReporteSupervision> {
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
+            // Dropdown de área
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.teal.shade50,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
                 border: Border.all(color: Colors.teal.shade200, width: 1.5),
               ),
               child: DropdownButtonHideUnderline(
@@ -102,18 +106,38 @@ class _ReporteSupervisionState extends State<ReporteSupervision> {
                   onChanged: (value) {
                     setState(() {
                       _selectedArea = value;
-                      _fetchTerminales(value!);
                     });
+                    _fetchSupervisionesPorArea(value!);
                   },
                 ),
               ),
             ),
+            const SizedBox(height: 10),
+
+            // Botones PDF y Excel
+            if (_selectedArea != null && _supervisionesDeArea.isNotEmpty)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.picture_as_pdf),
+                    label: const Text("Generar PDF"),
+                    onPressed: _generarPDF,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
 
             const SizedBox(height: 10),
 
-            /// 🔽 Mostrar mensaje si no se ha seleccionado nada o no hay datos
+            // Tabla
             Expanded(
-              child: _selectedArea == null || _terminales.isEmpty
+              child: _selectedArea == null || _supervisionesDeArea.isEmpty
                   ? const Center(
                       child: Text(
                         "Selecciona un área para ver el reporte de supervisión",
@@ -151,13 +175,12 @@ class _ReporteSupervisionState extends State<ReporteSupervision> {
                           DataColumn(label: Text("Asignación de RPE vs MySAP")),
                           DataColumn(label: Text("TOTAL")),
                         ],
-                        rows: _terminales.map((terminal) {
-                          final data = _supervisionData[terminal.id] ?? {};
+                        rows: _supervisionesDeArea.map((data) {
                           return DataRow(cells: [
                             DataCell(
                                 Text(data["fecha"]?.split("T").first ?? "-")),
-                            DataCell(Text(terminal.inventario)),
-                            DataCell(Text(terminal.serie)),
+                            DataCell(Text(data["inventario"] ?? "-")),
+                            DataCell(Text(data["serie"] ?? "-")),
                             DataCell(Text(data["anio_antiguedad"] ?? "-")),
                             DataCell(Text(data["rpe_usuario"] ?? "-")),
                             DataCell(

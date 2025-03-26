@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui';
 import 'package:cfe_registros/services/api_terminal.dart';
 import 'package:cfe_registros/services/api_terminales_supervision.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
@@ -112,9 +111,13 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
     }
 
     for (var terminalId in _supervisionData.keys) {
+      final supervisiones = _supervisionData[terminalId]!;
+      final total = calcularTotal(supervisiones);
+
       Map<String, dynamic> data = {
         "terminal_id": terminalId.toString(),
-        ..._supervisionData[terminalId]!,
+        ...supervisiones,
+        "total": total, // 👈 Se agrega el campo total al JSON que se envía
       };
 
       bool supervisionGuardada =
@@ -147,7 +150,20 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
   }
 
   int calcularTotal(Map<String, dynamic> terminal) {
-    return terminal.values.where((value) => value == 1).length;
+    int total = 0;
+
+    terminal.forEach((key, value) {
+      if (value == 1) {
+        total++;
+      } else if (key == "fotografias_fisicas") {
+        int? fotos = int.tryParse(value.toString());
+        if (fotos != null) {
+          total += fotos;
+        }
+      }
+    });
+
+    return total;
   }
 
   Future<void> _saveDraft() async {

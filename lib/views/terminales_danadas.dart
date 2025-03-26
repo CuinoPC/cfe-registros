@@ -64,8 +64,8 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
       } else {
         // ✅ Buscar solo coincidencias exactas
         _filteredTerminalesDanadas = _terminalesDanadas.where((terminal) {
-          return terminal.marca.trim().toLowerCase() == _searchQuery ||
-              terminal.modelo.trim().toLowerCase() == _searchQuery ||
+          return terminal.ticket.trim().toLowerCase() == _searchQuery ||
+              terminal.area.trim().toLowerCase() == _searchQuery ||
               terminal.serie.trim().toLowerCase() == _searchQuery ||
               terminal.inventario.trim().toLowerCase() == _searchQuery ||
               (terminal.fechaReporte?.trim().toLowerCase() ?? "") ==
@@ -81,12 +81,12 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
   void _sortBySelectedFilter() {
     setState(() {
       switch (_selectedFilter) {
-        case "Marca":
-          _filteredTerminalesDanadas.sort((a, b) => a.marca.compareTo(b.marca));
-          break;
-        case "Modelo":
+        case "Ticket":
           _filteredTerminalesDanadas
-              .sort((a, b) => a.modelo.compareTo(b.modelo));
+              .sort((a, b) => a.ticket.compareTo(b.ticket));
+          break;
+        case "Área":
+          _filteredTerminalesDanadas.sort((a, b) => a.area.compareTo(b.area));
           break;
         case "Serie":
           _filteredTerminalesDanadas.sort((a, b) => a.serie.compareTo(b.serie));
@@ -210,29 +210,33 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                                       ),
                                     ),
                                   ),
-                                ],
-                              ),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            PiezasTPSPage()), // Nueva página
-                                  );
-                                },
-                                icon: const Icon(Icons.settings),
-                                label: const Text("Ver piezas TPS"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 10),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                  const SizedBox(
+                                      width:
+                                          12), // 👈 Espacio entre los botones
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                PiezasTPSPage()),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.settings,
+                                        color: Colors.white),
+                                    label: const Text("Ver piezas TPS"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orange,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 10),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
+                                ],
+                              )
                             ],
                           ),
                           const SizedBox(height: 10),
@@ -288,8 +292,8 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                                     items: [
                                       "Fecha Reporte",
                                       "Fecha Reparación",
-                                      "Marca",
-                                      "Modelo",
+                                      "Ticket",
+                                      "Área",
                                       "Serie",
                                       "Inventario"
                                     ]
@@ -332,12 +336,11 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                               (states) => Colors.teal.shade100),
                           border: TableBorder.all(color: Colors.grey),
                           columns: const [
-                            DataColumn(
-                                label: Text(
-                                    "#")), // 📌 Nueva columna para numeración
+                            DataColumn2(
+                              label: Text("#"),
+                              fixedWidth: 50,
+                            ),
                             DataColumn(label: Text("Ticket")),
-                            DataColumn(label: Text("Marca")),
-                            DataColumn(label: Text("Modelo")),
                             DataColumn(label: Text("Área")),
                             DataColumn(label: Text("Serie")),
                             DataColumn(label: Text("Inventario")),
@@ -348,22 +351,25 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                             DataColumn(label: Text("Fecha Reparación")),
                             DataColumn(label: Text("Días de Reparación")),
                             DataColumn(label: Text("Costo")),
-                            DataColumn(label: Text("Pieza Reparada")),
-                            DataColumn(label: Text("observaciones")),
+                            DataColumn2(
+                              label: Text("Pieza Reparada"),
+                              fixedWidth: 300,
+                            ),
+                            DataColumn2(
+                              label: Text("Observaciones"),
+                              fixedWidth: 500,
+                            ),
                             DataColumn(label: Text("Archivo PDF")),
                           ],
                           rows: List.generate(_filteredTerminalesDanadas.length,
                               (index) {
                             final terminal = _filteredTerminalesDanadas[index];
                             return DataRow(cells: [
-                              DataCell(Text(
-                                  "${index + 1}")), // 📌 Numeración de filas
+                              DataCell(Text("${index + 1}")),
                               _buildEditableTextCell(terminal, "ticket"),
-                              DataCell(Text(terminal.marca)),
-                              DataCell(Text(terminal.modelo)),
-                              DataCell(Text(terminal.area)),
-                              DataCell(Text(terminal.serie)),
-                              DataCell(Text(terminal.inventario)),
+                              DataCell(SelectableText(terminal.area)),
+                              DataCell(SelectableText(terminal.serie)),
+                              DataCell(SelectableText(terminal.inventario)),
                               _buildEditableDateCell(terminal, "fechaReporte"),
                               _buildEditableDateCell(terminal, "fechaGuia"),
                               _buildEditableDateCell(

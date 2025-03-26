@@ -52,4 +52,23 @@ class SupervisionService {
       return [];
     }
   }
+
+  Future<List<Map<String, dynamic>>> getSupervisionesPorArea(
+      String area) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    if (token == null) return [];
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/terminales/supervision/area/$area'),
+      headers: {"Authorization": token},
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> jsonList = jsonDecode(response.body);
+      return jsonList.cast<Map<String, dynamic>>();
+    } else {
+      return [];
+    }
+  }
 }
