@@ -1,4 +1,4 @@
-import 'package:cfe_registros/models/historial.dart';
+import 'package:cfe_registros/models/terminal_historial.dart';
 import 'package:cfe_registros/services/api_terminal_historial.dart';
 import 'package:cfe_registros/services/api_users.dart';
 import 'package:flutter/material.dart';
@@ -60,8 +60,7 @@ class _HistorialPageState extends State<HistorialPage> {
         // ✅ Filtrar solo coincidencias exactas
         _filteredHistorial = _historial.where((registro) {
           return registro.rpeResponsable.trim().toLowerCase() == _searchQuery ||
-              _getAreaUsuario(registro.usuarioId).trim().toLowerCase() ==
-                  _searchQuery ||
+              registro.area.trim().toLowerCase() == _searchQuery ||
               registro.serie.trim().toLowerCase() == _searchQuery ||
               registro.inventario.trim().toLowerCase() == _searchQuery ||
               registro.nombreResponsable.trim().toLowerCase() == _searchQuery ||
@@ -118,13 +117,6 @@ class _HistorialPageState extends State<HistorialPage> {
     var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
         orElse: () => {'rp': "No disponible"});
     return usuario['rp'].toString();
-  }
-
-  // 🔹 Obtener el área del usuario
-  String _getAreaUsuario(int usuarioId) {
-    var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
-        orElse: () => {'nom_area': "No disponible"});
-    return usuario['nom_area'].toString();
   }
 
   @override
@@ -239,10 +231,7 @@ class _HistorialPageState extends State<HistorialPage> {
                         (states) => Colors.teal.shade100),
                     border: TableBorder.all(color: Colors.grey),
                     columns: const [
-                      DataColumn2(
-                        label: Text("#"),
-                        fixedWidth: 50,
-                      ),
+                      DataColumn2(label: Text("#"), fixedWidth: 50),
                       DataColumn(label: Text("Acción")),
                       DataColumn(label: Text("Marca")),
                       DataColumn(label: Text("Modelo")),
@@ -262,24 +251,22 @@ class _HistorialPageState extends State<HistorialPage> {
 
                       return DataRow(cells: [
                         DataCell(Text(index.toString())),
-                        DataCell(SelectableText(registro.accion,
+                        DataCell(Text(registro.accion,
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: registro.accion == "Creación"
                                     ? Colors.green
                                     : Colors.blue))),
-                        DataCell(SelectableText(registro.marca)),
-                        DataCell(SelectableText(registro.modelo)),
-                        DataCell(SelectableText(registro.serie)),
-                        DataCell(SelectableText(registro.inventario)),
-                        DataCell(
-                            SelectableText(registro.rpeResponsable.toString())),
-                        DataCell(SelectableText(registro.nombreResponsable)),
-                        DataCell(SelectableText(
+                        DataCell(Text(registro.marca)),
+                        DataCell(Text(registro.modelo)),
+                        DataCell(Text(registro.serie)),
+                        DataCell(Text(registro.inventario)),
+                        DataCell(Text(registro.rpeResponsable.toString())),
+                        DataCell(Text(registro.nombreResponsable)),
+                        DataCell(Text(
                             "${_getNombreUsuario(registro.usuarioId)} (RP: ${_getRpUsuario(registro.usuarioId)})")),
-                        DataCell(SelectableText(
-                            _getAreaUsuario(registro.usuarioId))),
-                        DataCell(SelectableText(fechaFormateada)),
+                        DataCell(SelectableText(registro.area)),
+                        DataCell(Text(fechaFormateada)),
                       ]);
                     }).toList(),
                   ),

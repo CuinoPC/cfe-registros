@@ -80,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
                       keyboardType: TextInputType.text, // 🔹 Cambiado a texto
                       maxLength: 5,
                       decoration: InputDecoration(
-                        labelText: 'Número de Trabajador (RP)',
+                        labelText: 'Número de Trabajador (RPE)',
                         prefixIcon:
                             const Icon(Icons.badge, color: Colors.green),
                         border: OutlineInputBorder(

@@ -83,10 +83,38 @@ class _UserListState extends State<UserList> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Lista de Usuarios",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                      // 🔝 Título y botón añadir usuario en la misma fila
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Lista de Usuarios",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => AddUser()),
+                              ).then((_) => _fetchUsers());
+                            },
+                            icon: const Icon(Icons.person_add),
+                            label: const Text("Añadir Usuario"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 10),
                       TextField(
@@ -111,6 +139,7 @@ class _UserListState extends State<UserList> {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 10),
 
                 // 📋 Tabla de usuarios
@@ -130,7 +159,7 @@ class _UserListState extends State<UserList> {
                           fixedWidth: 50,
                         ),
                         DataColumn(label: Text("Nombre")),
-                        DataColumn(label: Text("RP")),
+                        DataColumn(label: Text("RPE")),
                         DataColumn(label: Text("Área")),
                         DataColumn(label: Text("Proceso")),
                         DataColumn(label: Text("Contraseña")),
@@ -214,17 +243,6 @@ class _UserListState extends State<UserList> {
                 ),
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddUser()),
-          ).then((_) => _fetchUsers());
-        },
-        backgroundColor: Colors.teal.shade100,
-        child: Icon(Icons.add, color: Colors.teal.shade900),
-        tooltip: "Añadir Usuario",
-      ),
     );
   }
 }

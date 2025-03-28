@@ -1,3 +1,5 @@
+import 'package:cfe_registros/views/lector_list.dart';
+import 'package:cfe_registros/views/lectores_danados.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../views/login_page.dart';
@@ -69,7 +71,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               const SizedBox(width: 20),
               _buildNavItem(context, "Inicio"),
               _buildDropdownMenu(context), // ✅ Menú desplegable mejorado
-              _buildNavItem(context, "Lectores Ópticos"),
+              _buildLectoresDropdownMenu(context),
             ],
           ),
           Row(
@@ -163,6 +165,67 @@ class _CustomAppBarState extends State<CustomAppBar> {
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),
+        ),
+      ),
+    );
+  }
+
+  /// 🔹 Menú desplegable para Lectores Ópticos
+  Widget _buildLectoresDropdownMenu(BuildContext context) {
+    return PopupMenuButton<String>(
+      onSelected: (String? newValue) {
+        if (newValue == "Lista de Lectores") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LectorList()),
+          );
+        } else if (newValue == "Lectores Dañados") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => LectoresDanadosPage(
+                      lectoresDanados: [],
+                    )),
+          );
+        }
+      },
+      offset: const Offset(0, 50),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      itemBuilder: (BuildContext context) => [
+        PopupMenuItem(
+          value: "Lista de Lectores",
+          child: ListTile(
+            leading: Icon(Icons.qr_code_2, color: Colors.deepPurple.shade400),
+            title: const Text("Lista de Lectores"),
+          ),
+        ),
+        const PopupMenuItem(
+          value: "Lectores Dañados",
+          child: ListTile(
+            leading: Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+            title: Text("Lectores Dañados"),
+          ),
+        ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.deepPurple.shade400,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          children: [
+            Text(
+              "Lectores Ópticos",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 5),
+            Icon(Icons.arrow_drop_down, color: Colors.white),
+          ],
         ),
       ),
     );

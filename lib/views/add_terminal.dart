@@ -21,6 +21,7 @@ class _AddTerminalState extends State<AddTerminal> {
   List<Map<String, dynamic>> _responsables = [];
   List<Map<String, dynamic>> _usuariosTerminal = [];
   List<Map<String, dynamic>> _areas = [];
+  List<String> _marcas = [];
 
   int? _selectedResponsableId;
   int? _selectedAreaId;
@@ -36,8 +37,16 @@ class _AddTerminalState extends State<AddTerminal> {
   void initState() {
     super.initState();
     _loadUsuarios();
+    _loadMarcas();
     _loadAreas();
     _loadAdminStatus();
+  }
+
+  Future<void> _loadMarcas() async {
+    final marcas = await _ApiTerminalService.getMarcasTerminales();
+    setState(() {
+      _marcas = marcas;
+    });
   }
 
   Future<void> _loadAreas() async {
@@ -205,8 +214,21 @@ class _AddTerminalState extends State<AddTerminal> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
-                        controller: marcaController,
+                      DropdownButtonFormField<String>(
+                        value: _marcas.contains(marcaController.text)
+                            ? marcaController.text
+                            : null,
+                        items: _marcas.map((marca) {
+                          return DropdownMenuItem<String>(
+                            value: marca,
+                            child: Text(marca),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            marcaController.text = value ?? '';
+                          });
+                        },
                         decoration: InputDecoration(
                           labelText: "Marca",
                           prefixIcon: const Icon(Icons.devices_other,
@@ -216,6 +238,7 @@ class _AddTerminalState extends State<AddTerminal> {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: modeloController,
@@ -368,7 +391,7 @@ class _AddTerminalState extends State<AddTerminal> {
                           return DropdownMenuItem<int>(
                             value: usuario['id'],
                             child: Text(
-                                "${usuario['nombre_completo']} (RP: ${usuario['rp']})"),
+                                "${usuario['nombre_completo']} (RPE: ${usuario['rp']})"),
                           );
                         }).toList(),
                         onChanged: (value) {

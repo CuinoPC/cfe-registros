@@ -1,113 +1,115 @@
 import 'dart:convert';
-import 'package:cfe_registros/models/terminal.dart';
+import 'package:cfe_registros/models/lector.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart';
 
-class TerminalService {
+class LectorService {
   final String baseUrl = "http://localhost:5000/api";
 
-  Future<List<Terminal>?> getTerminales() async {
+  Future<List<Lector>?> getLectores() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return null;
 
     final response = await http.get(
-      Uri.parse('$baseUrl/terminales'),
+      Uri.parse('$baseUrl/lectores'),
       headers: {"Authorization": token},
     );
 
     if (response.statusCode == 200) {
       var decodedJson = jsonDecode(response.body);
       if (decodedJson is List) {
-        return decodedJson.map((json) => Terminal.fromJson(json)).toList();
+        return decodedJson.map((json) => Lector.fromJson(json)).toList();
       }
     }
     return null;
   }
 
-  Future<bool> createTerminal(
-      String marca,
-      String modelo,
-      String serie,
-      String inventario,
-      String rpe,
-      String nombre,
-      int usuarioId,
-      String area) async {
+  Future<bool> createLector(
+    String marca,
+    String modelo,
+    String folio,
+    String tipoConector,
+    String rpe,
+    String nombre,
+    int usuarioId,
+    String area,
+  ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
 
     final response = await http.post(
-      Uri.parse('$baseUrl/terminales'),
+      Uri.parse('$baseUrl/lectores'),
       headers: {"Content-Type": "application/json", "Authorization": token},
       body: jsonEncode({
         "marca": marca,
         "modelo": modelo,
-        "serie": serie,
-        "inventario": inventario,
+        "folio": folio,
+        "tipo_conector": tipoConector,
         "rpe_responsable": rpe,
         "nombre_responsable": nombre,
         "usuario_id": usuarioId,
-        "area": area
+        "area": area,
       }),
     );
 
     return response.statusCode == 201;
   }
 
-  Future<bool> updateTerminal(
-      int id,
-      String marca,
-      String modelo,
-      String serie,
-      String inventario,
-      String rpe,
-      String nombre,
-      int usuarioId,
-      String area) async {
+  Future<bool> updateLector(
+    int id,
+    String marca,
+    String modelo,
+    String folio,
+    String tipoConector,
+    String rpe,
+    String nombre,
+    int usuarioId,
+    String area,
+  ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
 
     final response = await http.put(
-      Uri.parse('$baseUrl/terminales/$id'),
+      Uri.parse('$baseUrl/lectores/$id'),
       headers: {"Content-Type": "application/json", "Authorization": token},
       body: jsonEncode({
         "marca": marca,
         "modelo": modelo,
-        "serie": serie,
-        "inventario": inventario,
+        "folio": folio,
+        "tipo_conector": tipoConector,
         "rpe_responsable": rpe,
         "nombre_responsable": nombre,
         "usuario_id": usuarioId,
-        "area": area
+        "area": area,
       }),
     );
 
     return response.statusCode == 200;
   }
 
-  Future<bool> deleteTerminal(int id) async {
+  Future<bool> deleteLector(int id) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return false;
 
     final response = await http.delete(
-      Uri.parse('$baseUrl/terminales/$id'),
+      Uri.parse('$baseUrl/lectores/$id'),
       headers: {"Content-Type": "application/json", "Authorization": token},
     );
 
     return response.statusCode == 200;
   }
 
-  Future<bool> uploadTerminalPhotos(int terminalId, List<XFile> photos) async {
+  Future<bool> uploadLectorPhotos(int lectorId, List<XFile> photos) async {
     try {
-      var uri = Uri.parse("$baseUrl/terminales/upload");
+      var uri = Uri.parse("$baseUrl/lectores/upload");
       var request = http.MultipartRequest('POST', uri);
-      request.fields['terminalId'] = terminalId.toString();
+      request.fields['lectorId'] = lectorId.toString();
 
       for (var photo in photos) {
         if (kIsWeb) {
@@ -142,14 +144,13 @@ class TerminalService {
     }
   }
 
-  Future<List<Terminal>> getTerminalesPorArea(String area) async {
+  Future<List<Lector>> getLectoresPorArea(String area) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
-
     if (token == null) return [];
 
     final response = await http.get(
-      Uri.parse('$baseUrl/terminales/area/$area'),
+      Uri.parse('$baseUrl/lectores/area/$area'),
       headers: {"Authorization": token},
     );
 
@@ -157,33 +158,9 @@ class TerminalService {
       var decodedJson = jsonDecode(response.body);
       if (decodedJson == null || decodedJson.isEmpty) return [];
 
-      return decodedJson
-          .map<Terminal>((json) => Terminal.fromJson(json))
-          .toList();
+      return decodedJson.map<Lector>((json) => Lector.fromJson(json)).toList();
     } else {
       return [];
     }
-  }
-
-  Future<List<String>> getMarcasTerminales() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-    if (token == null) return [];
-
-    final response = await http.get(
-      Uri.parse('$baseUrl/terminales/marcas'),
-      headers: {"Authorization": token},
-    );
-
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
-      if (decoded is List) {
-        return decoded
-            .map<String>((m) => m['marca']?.toString() ?? '')
-            .toList();
-      }
-    }
-
-    return [];
   }
 }

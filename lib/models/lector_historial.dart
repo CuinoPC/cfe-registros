@@ -1,43 +1,46 @@
-class HistorialRegistro {
+class HistorialLector {
   final int id;
-  final int terminalId;
+  final int lectorId;
   final String marca;
   final String modelo;
-  final String serie;
-  final String inventario;
+  final String folio;
+  final String tipoConector;
   final String rpeResponsable;
   final String nombreResponsable;
   final int usuarioId;
+  final String area;
   final String accion;
   final DateTime fecha;
 
-  HistorialRegistro({
+  HistorialLector({
     required this.id,
-    required this.terminalId,
+    required this.lectorId,
     required this.marca,
     required this.modelo,
-    required this.serie,
-    required this.inventario,
+    required this.folio,
+    required this.tipoConector,
     required this.rpeResponsable,
     required this.nombreResponsable,
     required this.usuarioId,
+    required this.area,
     required this.accion,
     required this.fecha,
   });
 
-  factory HistorialRegistro.fromJson(Map<String, dynamic> json) {
-    return HistorialRegistro(
+  factory HistorialLector.fromJson(Map<String, dynamic> json) {
+    return HistorialLector(
       id: json['id'],
-      terminalId: json['terminal_id'],
+      lectorId: json['lector_id'],
       marca: json['marca'],
       modelo: json['modelo'],
-      serie: json['serie'],
-      inventario: json['inventario'],
+      folio: json['folio'],
+      tipoConector: json['tipo_conector'],
       rpeResponsable: json['rpe_responsable'],
       nombreResponsable: json['nombre_responsable'],
       usuarioId: json['usuario_id'],
+      area: json['area'],
       accion: json['accion'],
-      fecha: DateTime.parse(json['fecha']), // ✅ Convertir fecha
+      fecha: DateTime.parse(json['fecha']),
     );
   }
 }

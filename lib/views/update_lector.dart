@@ -1,33 +1,33 @@
-import 'package:cfe_registros/services/api_terminal.dart';
+import 'package:cfe_registros/services/api_lector.dart';
 import 'package:cfe_registros/services/api_users.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/terminal.dart';
+import '../models/lector.dart';
 
-class UpdateTerminal extends StatefulWidget {
-  final Terminal terminal;
+class UpdateLector extends StatefulWidget {
+  final Lector lector;
 
-  UpdateTerminal({required this.terminal});
+  UpdateLector({required this.lector});
 
   @override
-  _UpdateTerminalState createState() => _UpdateTerminalState();
+  _UpdateLectorState createState() => _UpdateLectorState();
 }
 
-class _UpdateTerminalState extends State<UpdateTerminal> {
-  final TerminalService _ApiTerminalService = TerminalService();
+class _UpdateLectorState extends State<UpdateLector> {
+  final LectorService _ApiLectorService = LectorService();
   final ApiUserService _ApiUserService = ApiUserService();
+
   final TextEditingController marcaController = TextEditingController();
   final TextEditingController modeloController = TextEditingController();
-  final TextEditingController serieController = TextEditingController();
-  final TextEditingController inventarioController = TextEditingController();
+  final TextEditingController folioController = TextEditingController();
+  final TextEditingController conectorController = TextEditingController();
 
   List<Map<String, dynamic>> _usuarios = [];
-  List<Terminal> _terminales = [];
+  List<Lector> _lectores = [];
   List<Map<String, dynamic>> _responsables = [];
   List<Map<String, dynamic>> _usuariosTerminal = [];
   List<Map<String, dynamic>> _areas = [];
-  List<String> _marcas = [];
 
   int? _selectedResponsableId;
   int? _selectedAreaId;
@@ -36,32 +36,24 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
   String _selectedArea = "";
   String _selectedAreaNombre = "";
 
-  int? _selectedUsuarioId; // Usuario que usará la terminal
+  int? _selectedUsuarioId;
 
-  bool _esAdmin = false; // ✅ Estado de admin
+  bool _esAdmin = false;
 
   @override
   void initState() {
     super.initState();
-    marcaController.text = widget.terminal.marca;
-    modeloController.text = widget.terminal.modelo;
-    serieController.text = widget.terminal.serie;
-    inventarioController.text = widget.terminal.inventario;
+    marcaController.text = widget.lector.marca;
+    modeloController.text = widget.lector.modelo;
+    folioController.text = widget.lector.folio;
+    conectorController.text = widget.lector.tipoConector;
     _selectedResponsableId = null;
-    _selectedUsuarioId = widget.terminal.usuarioId;
-    _selectedArea = widget.terminal.area;
+    _selectedUsuarioId = widget.lector.usuarioId;
+    _selectedArea = widget.lector.area;
 
-    _loadUsuariosYTerminales();
-    _loadMarcas();
+    _loadUsuariosYLectores();
     _loadAreas();
     _loadAdminStatus();
-  }
-
-  Future<void> _loadMarcas() async {
-    final marcas = await _ApiTerminalService.getMarcasTerminales();
-    setState(() {
-      _marcas = marcas;
-    });
   }
 
   Future<void> _loadAreas() async {
@@ -76,12 +68,11 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
   Future<void> _loadAdminStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _esAdmin =
-          prefs.getBool('esAdmin') ?? false; // ✅ Recupera estado de admin
+      _esAdmin = prefs.getBool('esAdmin') ?? false;
     });
   }
 
-  Future<void> _loadUsuariosYTerminales() async {
+  Future<void> _loadUsuariosYLectores() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool esAdmin = prefs.getBool('esAdmin') ?? false;
     bool esCentro = prefs.getBool('esCentro') ?? false;
@@ -91,32 +82,28 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
         "⚡ SharedPreferences -> esAdmin: $esAdmin, esCentro: $esCentro, RP Usuario: $currentUserRP");
 
     List<Map<String, dynamic>>? usuarios = await _ApiUserService.getUsers();
-    List<Terminal>? terminales = await _ApiTerminalService.getTerminales();
+    List<Lector>? lectores = await _ApiLectorService.getLectores();
 
-    if (usuarios != null && terminales != null) {
+    if (usuarios != null && lectores != null) {
       setState(() {
         _usuarios = usuarios;
-        _terminales = terminales;
+        _lectores = lectores;
 
-        // ✅ Obtener el área del usuario logueado (si es jefe de centro)
         String currentUserArea = "No disponible";
         var currentUser = usuarios.firstWhere(
             (user) => user['rp'] == currentUserRP,
             orElse: () => {'nom_area': "No disponible"});
         currentUserArea = currentUser['nom_area'] ?? "No disponible";
 
-        // 🔹 Filtrar responsables (solo los que son `es_centro`)
         _responsables =
             usuarios.where((user) => user['es_centro'] == true).toList();
 
-        // 🔹 Si es admin, inicialmente ver todos los usuarios terminales
         if (esAdmin) {
           _usuariosTerminal = usuarios
               .where((user) =>
                   user['es_centro'] == false && user['es_admin'] == false)
               .toList();
         } else if (esCentro) {
-          // 🔹 Si es jefe de centro, ver solo usuarios terminales de su área
           _usuariosTerminal = usuarios
               .where((user) =>
                   user['es_admin'] == false &&
@@ -126,9 +113,8 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
           _usuariosTerminal = [];
         }
 
-        // ✅ Buscar responsable correcto
         var responsable = _responsables.firstWhere(
-            (user) => user['rp'] == widget.terminal.rpeResponsable,
+            (user) => user['rp'] == widget.lector.rpeResponsable,
             orElse: () => {});
 
         _selectedResponsableId = responsable['id'];
@@ -154,7 +140,6 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                 user['es_admin'] == false)
             .toList();
 
-        // ✅ Incluir al responsable también en la lista si no es admin
         if (responsable['es_admin'] != true &&
             !_usuariosTerminal.any((u) => u['id'] == responsable['id'])) {
           _usuariosTerminal.add(responsable);
@@ -163,15 +148,16 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
     }
   }
 
-  Future<void> _updateTerminal() async {
+  Future<void> _updateLector() async {
     String marca = marcaController.text;
     String modelo = modeloController.text;
-    String serie = serieController.text;
-    String inventario = inventarioController.text;
+    String folio = folioController.text;
+    String tipoConector = conectorController.text;
 
     if (marca.isEmpty ||
-        serie.isEmpty ||
-        inventario.isEmpty ||
+        modelo.isEmpty ||
+        folio.isEmpty ||
+        tipoConector.isEmpty ||
         _selectedResponsableId == null ||
         _selectedUsuarioId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -183,13 +169,12 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
       return;
     }
 
-    // ✅ 1. ACTUALIZAR LA TERMINAL PRINCIPAL
-    bool success = await _ApiTerminalService.updateTerminal(
-      widget.terminal.id,
+    bool success = await _ApiLectorService.updateLector(
+      widget.lector.id,
       marca,
       modelo,
-      serie,
-      inventario,
+      folio,
+      tipoConector,
       _selectedResponsableRP,
       _selectedResponsableNombre,
       _selectedUsuarioId!,
@@ -197,13 +182,15 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Terminal y responsables actualizados correctamente"),
-        backgroundColor: Colors.green,
+      SnackBar(
+        content: Text(success
+            ? "Lector actualizado correctamente"
+            : "Error al actualizar lector"),
+        backgroundColor: success ? Colors.green : Colors.red,
       ),
     );
 
-    Navigator.pop(context, true);
+    if (success) Navigator.pop(context, true);
   }
 
   @override
@@ -238,7 +225,7 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'Actualizar Terminal',
+                        'Actualizar Lector',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 24,
@@ -247,10 +234,8 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      DropdownButtonFormField<String>(
-                        value: _marcas.contains(marcaController.text)
-                            ? marcaController.text
-                            : null,
+                      TextFormField(
+                        controller: marcaController,
                         decoration: InputDecoration(
                           labelText: "Marca",
                           prefixIcon: const Icon(Icons.devices_other,
@@ -259,19 +244,7 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        items: _marcas.map((marca) {
-                          return DropdownMenuItem<String>(
-                            value: marca,
-                            child: Text(marca),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            marcaController.text = value ?? '';
-                          });
-                        },
                       ),
-
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: modeloController,
@@ -286,9 +259,9 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
-                        controller: serieController,
+                        controller: folioController,
                         decoration: InputDecoration(
-                          labelText: "Serie",
+                          labelText: "Folio",
                           prefixIcon:
                               const Icon(Icons.numbers, color: Colors.teal),
                           border: OutlineInputBorder(
@@ -298,11 +271,10 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
-                        controller: inventarioController,
+                        controller: conectorController,
                         decoration: InputDecoration(
-                          labelText: "Inventario",
-                          prefixIcon:
-                              const Icon(Icons.inventory, color: Colors.teal),
+                          labelText: "Tipo de Conector",
+                          prefixIcon: const Icon(Icons.usb, color: Colors.teal),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -336,7 +308,6 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
 
                             _selectedArea = _selectedAreaNombre;
 
-                            // 🔹 Jefe de centro del área
                             final jefe = _responsables.firstWhere(
                               (r) => r['nom_area'] == _selectedArea,
                               orElse: () => {},
@@ -347,14 +318,12 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                             _selectedResponsableNombre =
                                 jefe['nombre_completo'] ?? "";
 
-                            // 🔹 Usuarios terminales de esa área
                             _usuariosTerminal = _usuarios
                                 .where((user) =>
                                     user['nom_area'] == _selectedArea &&
                                     user['es_admin'] == false)
                                 .toList();
 
-// 🔹 Agregar también al jefe de centro (si no es admin y no está duplicado)
                             final jefeCentro = _responsables.firstWhere(
                               (r) => r['nom_area'] == _selectedArea,
                               orElse: () => {},
@@ -369,8 +338,6 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                         },
                       ),
                       const SizedBox(height: 16),
-
-                      // 🔽 Mostrar campo de Responsable SOLO si el usuario es admin
                       if (_esAdmin)
                         Column(
                           children: [
@@ -386,7 +353,7 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                               value: _responsables.any((user) =>
                                       user['id'] == _selectedResponsableId)
                                   ? _selectedResponsableId
-                                  : null, // ✅ Evita error si el ID no está en la lista
+                                  : null,
                               items: _responsables
                                   .where((usuario) =>
                                       usuario['nom_area'] == _selectedArea)
@@ -407,8 +374,8 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                                   _selectedResponsableRP = usuario['rp'] ?? "";
                                   _selectedResponsableNombre =
                                       usuario['nombre_completo'] ?? "";
-                                  _selectedArea = usuario['nom_area'] ??
-                                      "No disponible"; // ✅ área actualizada
+                                  _selectedArea =
+                                      usuario['nom_area'] ?? "No disponible";
                                 });
 
                                 _filtrarUsuariosPorResponsable();
@@ -417,7 +384,6 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                             const SizedBox(height: 16),
                           ],
                         ),
-                      // 🔽 Dropdown para seleccionar el Usuario Terminal
                       DropdownButtonFormField<int>(
                         decoration: InputDecoration(
                           labelText: "Usuario Terminal",
@@ -430,7 +396,7 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                         value: _usuariosTerminal
                                 .any((user) => user['id'] == _selectedUsuarioId)
                             ? _selectedUsuarioId
-                            : null, // ✅ Evita error si el ID no está en la lista
+                            : null,
                         items: _usuariosTerminal.map((usuario) {
                           return DropdownMenuItem<int>(
                             value: usuario['id'],
@@ -444,10 +410,9 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                           });
                         },
                       ),
-
                       const SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: _updateTerminal,
+                        onPressed: _updateLector,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal.shade700,
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -456,7 +421,7 @@ class _UpdateTerminalState extends State<UpdateTerminal> {
                           ),
                         ),
                         child: const Text(
-                          "Actualizar Terminal",
+                          "Actualizar Lector",
                           style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                       ),

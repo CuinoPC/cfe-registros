@@ -1,38 +1,38 @@
-import 'package:cfe_registros/models/terminal_danada.dart';
-import 'package:cfe_registros/services/api_terminal.dart';
-import 'package:cfe_registros/services/api_terminal_danada.dart';
+import 'package:cfe_registros/models/lector.dart';
+import 'package:cfe_registros/models/lector_danado.dart';
+import 'package:cfe_registros/services/api_lector.dart';
+import 'package:cfe_registros/services/api_lector_danado.dart';
 import 'package:cfe_registros/services/api_users.dart';
-import 'package:cfe_registros/views/add_supervision_honeywell.dart';
+import 'package:cfe_registros/views/add_lector.dart';
 import 'package:cfe_registros/views/custom_appbar.dart';
-import 'package:cfe_registros/views/terminal_historial.dart';
-import 'package:cfe_registros/views/add_supervision_terminal.dart';
-import 'package:cfe_registros/views/view_supervision_honeywell.dart';
-import 'package:cfe_registros/views/view_supervision_terminal.dart';
+import 'package:cfe_registros/views/lector_historial.dart';
+import 'package:cfe_registros/views/update_lector.dart';
+import 'package:cfe_registros/views/add_supervision_lector.dart';
+import 'package:cfe_registros/views/view_supervision_lector.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/terminal.dart';
-import 'add_terminal.dart';
-import 'update_terminal.dart';
 
-class TerminalList extends StatefulWidget {
+class LectorList extends StatefulWidget {
   @override
-  _TerminalListState createState() => _TerminalListState();
+  _LectorListState createState() => _LectorListState();
 }
 
-class _TerminalListState extends State<TerminalList> {
-  final TerminalService _ApiTerminalService = TerminalService();
-  final TerminalDanadaService _TerminalDanadaService = TerminalDanadaService();
-  final ApiUserService _ApiUserService = ApiUserService();
-  List<Terminal> _terminales = [];
-  List<Terminal> _filteredTerminales = [];
-  List<Map<String, dynamic>> _usuarios = []; // Lista de usuarios
+class _LectorListState extends State<LectorList> {
+  final LectorService _lectorService = LectorService();
+  final LectorDanadoService _lectorDanadoService = LectorDanadoService();
+  final ApiUserService _apiUserService = ApiUserService();
+
+  List<Lector> _lectores = [];
+  List<Lector> _filteredLectores = [];
+  List<Map<String, dynamic>> _usuarios = [];
+
   bool _isLoading = true;
   String _searchQuery = "";
-  String _selectedFilter = "Fecha"; // ✅ Filtro por defecto
+  String _selectedFilter = "Fecha";
   bool _esCentro = false;
   bool _esAdmin = false;
-  Set<Terminal> _terminalesDanadas = {};
+  Set<Lector> _lectoresDanados = {};
 
   @override
   void initState() {
@@ -46,231 +46,180 @@ class _TerminalListState extends State<TerminalList> {
     bool esCentro = prefs.getBool('esCentro') ?? false;
     String currentUserRP = prefs.getString('rp') ?? "No disponible";
 
-    List<Terminal>? terminales = await _ApiTerminalService.getTerminales();
-    List<Map<String, dynamic>>? usuariosData = await _ApiUserService.getUsers();
-    List<TerminalDanada> terminalesDanadas =
-        await _TerminalDanadaService.getTerminalesDanadas();
+    List<Lector>? lectores = await _lectorService.getLectores();
+    List<Map<String, dynamic>>? usuariosData = await _apiUserService.getUsers();
+    List<LectorDanado> lectoresDanados =
+        await _lectorDanadoService.getLectoresDanados();
 
-    if (terminales != null && usuariosData != null) {
+    if (lectores != null && usuariosData != null) {
       setState(() {
         _esCentro = esCentro;
         _esAdmin = esAdmin;
 
         if (_esAdmin) {
-          _terminales = terminales;
+          _lectores = lectores;
         } else if (_esCentro) {
-          _terminales = terminales.where((terminal) {
-            return terminal.rpeResponsable == currentUserRP;
-          }).toList();
+          _lectores =
+              lectores.where((l) => l.rpeResponsable == currentUserRP).toList();
         } else {
-          _terminales = [];
+          _lectores = [];
         }
 
-        _filteredTerminales = _terminales;
+        _filteredLectores = _lectores;
         _usuarios = usuariosData;
         _isLoading = false;
       });
 
-      _terminalesDanadas.clear();
-      for (var terminal in _terminales) {
-        bool sigueDanada =
-            terminalesDanadas.any((t) => t.serie == terminal.serie);
+      _lectoresDanados.clear();
+      for (var lector in _lectores) {
+        bool sigueDanado = lectoresDanados.any((l) => l.folio == lector.folio);
         String? fechaReparacion =
-            prefs.getString('terminal_reparada_${terminal.serie}');
+            prefs.getString('lector_reparado_${lector.folio}');
 
-        // 🔹 La terminal sigue apareciendo en la lista de terminales dañadas
-        if (sigueDanada) {
-          _terminalesDanadas.add(terminal);
+        if (sigueDanado) {
+          _lectoresDanados.add(lector);
         }
 
-        // 🔹 Si tiene fecha de reparación, solo desmarcamos la casilla (sin eliminarla de la lista)
         if (fechaReparacion != null) {
-          _terminalesDanadas.remove(terminal);
+          _lectoresDanados.remove(lector);
         }
       }
     } else {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
-  /// 🔍 **Filtrar la lista según el texto de búsqueda (coincidencias exactas)**
   void _filterSearchResults(String query) {
     setState(() {
       _searchQuery = query.trim().toLowerCase();
-
       if (_searchQuery.isEmpty) {
-        // ✅ Si el campo de búsqueda está vacío, restaurar todos los registros
-        _filteredTerminales = List.from(_terminales);
+        _filteredLectores = List.from(_lectores);
       } else {
-        // ✅ Buscar solo coincidencias exactas
-        _filteredTerminales = _terminales.where((terminal) {
-          return terminal.marca.trim().toLowerCase() == _searchQuery ||
-              terminal.modelo.trim().toLowerCase() == _searchQuery ||
-              terminal.serie.trim().toLowerCase() == _searchQuery ||
-              terminal.inventario.trim().toLowerCase() == _searchQuery ||
-              terminal.nombreResponsable.trim().toLowerCase() == _searchQuery ||
-              _getNombreUsuario(terminal.usuarioId).trim().toLowerCase() ==
+        _filteredLectores = _lectores.where((lector) {
+          return lector.marca.toLowerCase() == _searchQuery ||
+              lector.modelo.toLowerCase() == _searchQuery ||
+              lector.folio.toLowerCase() == _searchQuery ||
+              lector.tipoConector.toLowerCase() == _searchQuery ||
+              _getNombreUsuario(lector.usuarioId).toLowerCase() ==
                   _searchQuery ||
-              _getRpUsuario(terminal.usuarioId).trim().toLowerCase() ==
-                  _searchQuery ||
-              terminal.area.trim().toLowerCase() == _searchQuery;
+              _getRpUsuario(lector.usuarioId).toLowerCase() == _searchQuery ||
+              lector.area.toLowerCase() == _searchQuery;
         }).toList();
       }
     });
   }
 
-  // 🔹 Ordenar la lista según el filtro seleccionado
   void _sortBySelectedFilter() {
     setState(() {
       switch (_selectedFilter) {
         case "Marca":
-          _filteredTerminales.sort((a, b) => a.marca.compareTo(b.marca));
+          _filteredLectores.sort((a, b) => a.marca.compareTo(b.marca));
           break;
         case "Modelo":
-          _filteredTerminales.sort((a, b) => a.modelo.compareTo(b.modelo));
+          _filteredLectores.sort((a, b) => a.modelo.compareTo(b.modelo));
           break;
-        case "Serie":
-          _filteredTerminales.sort((a, b) => a.serie.compareTo(b.serie));
-          break;
-        case "Nombre Responsable":
-          _filteredTerminales.sort(
-              (a, b) => a.nombreResponsable.compareTo(b.nombreResponsable));
+        case "Folio":
+          _filteredLectores.sort((a, b) => a.folio.compareTo(b.folio));
           break;
         case "Usuario (RP)":
-          _filteredTerminales.sort((a, b) => _getNombreUsuario(a.usuarioId)
+          _filteredLectores.sort((a, b) => _getNombreUsuario(a.usuarioId)
               .compareTo(_getNombreUsuario(b.usuarioId)));
           break;
         case "Fecha":
         default:
-          _filteredTerminales.sort((a, b) =>
-              b.id.compareTo(a.id)); // ✅ Ordenar por ID (más reciente primero)
+          _filteredLectores.sort((a, b) => b.id.compareTo(a.id));
           break;
       }
     });
   }
 
-  // 🔹 Obtener el nombre del usuario
   String _getNombreUsuario(int usuarioId) {
-    var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
+    var usuario = _usuarios.firstWhere((u) => u['id'] == usuarioId,
         orElse: () => {'nombre_completo': "No disponible"});
-    return usuario['nombre_completo'].toString();
+    return usuario['nombre_completo'];
   }
 
-  // 🔹 Obtener el RP del usuario
   String _getRpUsuario(int usuarioId) {
-    var usuario = _usuarios.firstWhere((user) => user['id'] == usuarioId,
+    var usuario = _usuarios.firstWhere((u) => u['id'] == usuarioId,
         orElse: () => {'rp': "No disponible"});
-    return usuario['rp'].toString();
+    return usuario['rp'];
   }
 
-  Future<void> _deleteTerminal(int id) async {
-    bool success = await _ApiTerminalService.deleteTerminal(id);
+  Future<void> _deleteLector(int id) async {
+    bool success = await _lectorService.deleteLector(id);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Terminal eliminada correctamente")),
+        const SnackBar(content: Text("Lector eliminado correctamente")),
       );
       _fetchData();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error al eliminar la terminal")),
+        const SnackBar(content: Text("Error al eliminar el lector")),
       );
     }
   }
 
-  void _navigateToUploadPhotos(int terminalId) async {
-    final terminal = _terminales.firstWhere((t) => t.id == terminalId);
-
+  void _navigateToUploadPhotos(int lectorId) async {
     bool? updated = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) {
-          if (terminal.marca.trim().toUpperCase() == 'HONEYWELL') {
-            return UploadPhotosHoneywellPage(terminalId: terminalId);
-          } else {
-            return UploadPhotosPage(terminalId: terminalId);
-          }
-        },
+        builder: (context) => UploadLectorPhotosPage(lectorId: lectorId),
       ),
     );
 
     if (updated == true) {
-      setState(() {
-        _isLoading = true;
-      });
-
+      setState(() => _isLoading = true);
       await _fetchData();
-
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   void _navigateToViewPhotos(
-      int terminalId, Map<String, List<String>> fotosPorFecha) {
-    final terminal = _terminales.firstWhere((t) => t.id == terminalId);
-
+      int lectorId, Map<String, List<String>> fotosPorFecha) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) {
-          if (terminal.marca.trim().toUpperCase() == 'HONEYWELL') {
-            return ViewPhotosHoneywellPage(
-                terminalId: terminalId, fotosPorFecha: fotosPorFecha);
-          } else {
-            return ViewPhotosPage(
-                terminalId: terminalId, fotosPorFecha: fotosPorFecha);
-          }
-        },
+        builder: (context) => ViewLectorPhotosPage(
+          lectorId: lectorId,
+          fotosPorFecha: fotosPorFecha,
+        ),
       ),
     );
   }
 
-  void _marcarTerminalDanada(Terminal terminal, bool value) async {
+  void _marcarLectorDanado(Lector lector, bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (value) {
-      // 🔹 Si el usuario vuelve a marcar la casilla, eliminamos la fecha de reparación guardada
-      await prefs.remove('terminal_reparada_${terminal.serie}');
+      await prefs.remove('lector_reparado_${lector.folio}');
     }
 
     setState(() {
       if (value) {
-        _terminalesDanadas.add(terminal);
+        _lectoresDanados.add(lector);
       } else {
-        _terminalesDanadas.remove(terminal);
+        _lectoresDanados.remove(lector);
       }
     });
 
     if (value) {
-      bool success = await _TerminalDanadaService.marcarTerminalDanada(
-          terminal.id,
-          terminal.marca,
-          terminal.modelo,
-          terminal.area,
-          terminal.serie,
-          terminal.inventario);
+      bool success = await _lectorDanadoService.marcarLectorDanado(
+          lector.id,
+          lector.marca,
+          lector.modelo,
+          lector.area,
+          lector.folio,
+          lector.tipoConector);
 
-      if (success) {
-        // ✅ Mostrar mensaje de éxito
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Terminal dañada guardada exitosamente"),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Error al marcar terminal como dañada"),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? "Lector dañado guardado exitosamente"
+              : "Error al marcar lector como dañado"),
+          backgroundColor: success ? Colors.green : Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -282,7 +231,6 @@ class _TerminalListState extends State<TerminalList> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // 📌 Encabezado con título, búsqueda y filtros
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -292,9 +240,11 @@ class _TerminalListState extends State<TerminalList> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            "Lista de Terminales",
+                            "Lista de Lectores",
                             style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Row(
                             children: [
@@ -303,11 +253,13 @@ class _TerminalListState extends State<TerminalList> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => HistorialPage()),
+                                        builder: (context) =>
+                                            HistorialLectorPage()),
                                   );
                                 },
-                                icon: const Icon(Icons.history),
-                                label: const Text("Histórico"),
+                                icon: const Icon(Icons.history,
+                                    color: Colors.white),
+                                label: const Text("Historial"),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.teal,
                                   foregroundColor: Colors.white,
@@ -324,11 +276,11 @@ class _TerminalListState extends State<TerminalList> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => AddTerminal()),
+                                        builder: (context) => AddLector()),
                                   ).then((_) => _fetchData());
                                 },
                                 icon: const Icon(Icons.add),
-                                label: const Text("Añadir Terminal"),
+                                label: const Text("Añadir Lector"),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.teal,
                                   foregroundColor: Colors.white,
@@ -344,8 +296,6 @@ class _TerminalListState extends State<TerminalList> {
                         ],
                       ),
                       const SizedBox(height: 10),
-
-                      // 🔍 Barra de búsqueda
                       TextField(
                         onChanged: _filterSearchResults,
                         decoration: InputDecoration(
@@ -366,8 +316,6 @@ class _TerminalListState extends State<TerminalList> {
                         ),
                       ),
                       const SizedBox(height: 10),
-
-                      // 🔽 Filtro de orden
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -400,8 +348,7 @@ class _TerminalListState extends State<TerminalList> {
                                   "Fecha",
                                   "Marca",
                                   "Modelo",
-                                  "Serie",
-                                  "Nombre Responsable",
+                                  "Folio",
                                   "Usuario (RP)"
                                 ]
                                     .map((String value) => DropdownMenuItem(
@@ -430,8 +377,6 @@ class _TerminalListState extends State<TerminalList> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
-                // 📋 Tabla de terminales
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -446,55 +391,54 @@ class _TerminalListState extends State<TerminalList> {
                         DataColumn2(label: Text("#"), fixedWidth: 50),
                         DataColumn(label: Text("Marca")),
                         DataColumn(label: Text("Modelo")),
-                        DataColumn(label: Text("Serie")),
-                        DataColumn(label: Text("Inventario")),
+                        DataColumn(label: Text("Folio")),
+                        DataColumn(label: Text("Tipo de Conector")),
                         DataColumn(label: Text("Responsable (RPE)")),
                         DataColumn(label: Text("Nombre Responsable")),
-                        DataColumn(label: Text("Usuario (RPE)")),
+                        DataColumn(label: Text("Usuario (RP)")),
                         DataColumn(label: Text("Área")),
                         DataColumn2(
                             label: Text("Supervisión"), fixedWidth: 165),
                         DataColumn2(
                             label: Text("Supervisión Nueva"), fixedWidth: 225),
-                        DataColumn2(label: Text("Dañada"), fixedWidth: 80),
+                        DataColumn2(label: Text("Dañado"), fixedWidth: 80),
                         DataColumn2(label: Text("Opciones"), fixedWidth: 100),
                       ],
-                      rows: _filteredTerminales.asMap().entries.map((entry) {
+                      rows: _filteredLectores.asMap().entries.map((entry) {
                         int index = entry.key + 1;
-                        Terminal terminal = entry.value;
+                        Lector lector = entry.value;
                         return DataRow(cells: [
                           DataCell(Text(index.toString())),
-                          DataCell(SelectableText(terminal.marca)),
-                          DataCell(SelectableText(terminal.modelo)),
-                          DataCell(SelectableText(terminal.serie)),
-                          DataCell(SelectableText(terminal.inventario)),
-                          DataCell(SelectableText(
-                              terminal.rpeResponsable.toString())),
-                          DataCell(SelectableText(terminal.nombreResponsable)),
+                          DataCell(SelectableText(lector.marca)),
+                          DataCell(SelectableText(lector.modelo)),
+                          DataCell(SelectableText(lector.folio)),
+                          DataCell(SelectableText(lector.tipoConector)),
+                          DataCell(SelectableText(lector.rpeResponsable)),
+                          DataCell(SelectableText(lector.nombreResponsable)),
                           DataCell(
                             SelectableText(
-                              "${_getNombreUsuario(terminal.usuarioId)} (RP: ${_getRpUsuario(terminal.usuarioId)})",
+                              "${_getNombreUsuario(lector.usuarioId)} (RP: ${_getRpUsuario(lector.usuarioId)})",
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
-                          DataCell(SelectableText(terminal.area)),
+                          DataCell(SelectableText(lector.area)),
                           DataCell(
                             TextButton(
                               onPressed: () {
-                                if (terminal.fotos.isNotEmpty) {
+                                if (lector.fotos.isNotEmpty) {
                                   _navigateToViewPhotos(
-                                      terminal.id, terminal.fotos);
+                                      lector.id, lector.fotos);
                                 } else {
-                                  _navigateToUploadPhotos(terminal.id);
+                                  _navigateToUploadPhotos(lector.id);
                                 }
                               },
                               child: Text(
-                                terminal.fotos.isNotEmpty
+                                lector.fotos.isNotEmpty
                                     ? "Ver Supervisión"
                                     : "Subir Supervisión",
                                 style: TextStyle(
-                                  color: terminal.fotos.isNotEmpty
+                                  color: lector.fotos.isNotEmpty
                                       ? Colors.green
                                       : Colors.blue,
                                   fontWeight: FontWeight.bold,
@@ -503,11 +447,11 @@ class _TerminalListState extends State<TerminalList> {
                             ),
                           ),
                           DataCell(
-                            terminal.fotos.isEmpty
+                            lector.fotos.isEmpty
                                 ? const Text("-")
                                 : TextButton(
                                     onPressed: () {
-                                      _navigateToUploadPhotos(terminal.id);
+                                      _navigateToUploadPhotos(lector.id);
                                     },
                                     child: const Text(
                                       "Cargar Supervisión Nueva",
@@ -520,12 +464,12 @@ class _TerminalListState extends State<TerminalList> {
                           DataCell(
                             Center(
                               child: Checkbox(
-                                value: _terminalesDanadas.contains(terminal),
-                                onChanged: _terminalesDanadas.contains(terminal)
+                                value: _lectoresDanados.contains(lector),
+                                onChanged: _lectoresDanados.contains(lector)
                                     ? null
                                     : (bool? value) {
                                         if (value == true) {
-                                          _marcarTerminalDanada(terminal, true);
+                                          _marcarLectorDanado(lector, true);
                                         }
                                       },
                               ),
@@ -542,7 +486,7 @@ class _TerminalListState extends State<TerminalList> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            UpdateTerminal(terminal: terminal),
+                                            UpdateLector(lector: lector),
                                       ),
                                     ).then((updated) {
                                       if (updated == true) _fetchData();
@@ -553,7 +497,7 @@ class _TerminalListState extends State<TerminalList> {
                                   icon: const Icon(Icons.delete,
                                       color: Colors.red),
                                   onPressed: () {
-                                    _deleteTerminal(terminal.id);
+                                    _deleteLector(lector.id);
                                   },
                                 ),
                               ],

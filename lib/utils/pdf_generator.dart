@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 Future<void> generarPDFReporte({
   required String area,
   required List<Map<String, dynamic>> supervisiones,
+  required List<Map<String, dynamic>> supervisionesLectores,
   required String supervisorTIC,
   required String jefeCentro,
 }) async {
@@ -124,8 +125,32 @@ Future<void> generarPDFReporte({
 
         pw.SizedBox(height: 18),
 
+        pw.Table(
+          border: pw.TableBorder.all(color: PdfColors.grey600, width: 0.5),
+          columnWidths: {
+            0: const pw.FlexColumnWidth(1),
+          },
+          children: [
+            pw.TableRow(
+              children: [
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(6),
+                  color: PdfColors.teal900,
+                  alignment: pw.Alignment.center,
+                  child: pw.Text(
+                    "TERMINALES NEWLAND",
+                    style: pw.TextStyle(
+                      color: PdfColors.white,
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
         // 🟩 TABLA DE SUPERVISIÓN
-        // 🟢 Encabezado agrupado (simula colSpan)
         pw.Table(
           border: pw.TableBorder.all(color: PdfColors.grey600, width: 0.5),
           columnWidths: {
@@ -135,7 +160,6 @@ Future<void> generarPDFReporte({
             2: const pw.FixedColumnWidth(120), // SIGESTEL (2 columnas)
             3: const pw.FixedColumnWidth(120), // SISTIC (2 columnas)
             4: const pw.FixedColumnWidth(90), // SIITIC (2 columnas)
-            5: const pw.FixedColumnWidth(40), // TOTAL
           },
           children: [
             pw.TableRow(
@@ -181,14 +205,6 @@ Future<void> generarPDFReporte({
                             fontSize: 10, fontWeight: pw.FontWeight.bold)),
                   ),
                 ),
-                pw.Center(
-                  child: pw.Padding(
-                    padding: const pw.EdgeInsets.all(4),
-                    child: pw.Text("TOTAL",
-                        style: pw.TextStyle(
-                            fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                  ),
-                ),
               ],
             )
           ],
@@ -196,7 +212,7 @@ Future<void> generarPDFReporte({
 
         pw.SizedBox(height: 1),
 
-// 🟡 Encabezado real y filas
+        // 🟡 Encabezado real y filas
         pw.Table.fromTextArray(
           headers: [
             'Inventario',
@@ -272,6 +288,172 @@ Future<void> generarPDFReporte({
             18: const pw.FixedColumnWidth(40),
           },
         ),
+        // 🟦 TABLA HONEYWELL
+        pw.Table(
+          border: pw.TableBorder.all(color: PdfColors.grey600, width: 0.5),
+          columnWidths: {
+            0: const pw.FlexColumnWidth(1),
+          },
+          children: [
+            pw.TableRow(
+              children: [
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(6),
+                  color: PdfColors.blue900,
+                  alignment: pw.Alignment.center,
+                  child: pw.Text(
+                    "TERMINALES HONEYWELL",
+                    style: pw.TextStyle(
+                      color: PdfColors.white,
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        pw.Table.fromTextArray(
+          headers: [
+            'Inventario',
+            'Serie',
+            'RPE Usuario',
+            'Coincide serie física/interna',
+            'Fotografías físicas',
+            'Asignación usuario SISTIC',
+            'Registro serie SISTIC',
+            'Centro trabajo SISTIC',
+            'Asignación usuario SIITIC',
+            'Registro serie SIITIC',
+            'Centro trabajo SIITIC',
+            'TOTAL',
+          ],
+          data: supervisiones.map((entry) {
+            String check(value) => value == 1 ? 'Sí' : '';
+            return [
+              entry['inventario'] ?? '',
+              entry['serie'] ?? '',
+              entry['rpe_usuario'] ?? '',
+              check(entry['coincide_serie_fisica_vs_interna']),
+              entry['fotografias_fisicas']?.toString() ?? '',
+              check(entry['asignacion_usuario_sistic']),
+              check(entry['registro_serie_sistic']),
+              check(entry['centro_trabajo_sistic']),
+              check(entry['asignacion_usuario_siitic']),
+              check(entry['registro_serie_siitic']),
+              check(entry['centro_trabajo_siitic']),
+              entry['total']?.toString() ?? '0',
+            ];
+          }).toList(),
+          cellStyle: const pw.TextStyle(fontSize: 9),
+          headerStyle:
+              pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold),
+          border: pw.TableBorder.all(color: PdfColors.grey600, width: 0.5),
+          headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+          cellAlignment: pw.Alignment.center,
+          headerAlignment: pw.Alignment.center,
+          columnWidths: {
+            0: const pw.FixedColumnWidth(60),
+            1: const pw.FixedColumnWidth(60),
+            2: const pw.FixedColumnWidth(70),
+            3: const pw.FixedColumnWidth(70),
+            4: const pw.FixedColumnWidth(45),
+            5: const pw.FixedColumnWidth(55),
+            6: const pw.FixedColumnWidth(55),
+            7: const pw.FixedColumnWidth(55),
+            8: const pw.FixedColumnWidth(55),
+            9: const pw.FixedColumnWidth(55),
+            10: const pw.FixedColumnWidth(55),
+            11: const pw.FixedColumnWidth(40),
+          },
+        ),
+
+        pw.Table(
+          border: pw.TableBorder.all(color: PdfColors.grey600, width: 0.5),
+          columnWidths: {
+            0: const pw.FlexColumnWidth(1),
+          },
+          children: [
+            pw.TableRow(
+              children: [
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(6),
+                  color: PdfColors.green900,
+                  alignment: pw.Alignment.center,
+                  child: pw.Text(
+                    "LECTORES ÓPTICOS",
+                    style: pw.TextStyle(
+                      color: PdfColors.white,
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        // 🟡 Encabezado real y filas de Lectores
+        pw.Table.fromTextArray(
+          headers: [
+            'Fecha',
+            'Folio',
+            'Marca',
+            'Modelo',
+            'Tipo Conector',
+            'Fotografía Conector',
+            'Fotografía Cincho/Folio',
+            'Fotografía Cabezal',
+            'Registro CTRL',
+            'Ubicación CTRL',
+            'Registro SIITIC',
+            'Ubicación SIITIC',
+            'TOTAL',
+          ],
+          data: supervisionesLectores.map((entry) {
+            String check(value) => value == 1 ? 'Sí' : '';
+            return [
+              entry['fecha']?.toString().split('T').first ?? '',
+              entry['folio'] ?? '',
+              entry['marca'] ?? '',
+              entry['modelo'] ?? '',
+              entry['tipo_conector'] ?? '',
+              check(entry['fotografia_conector']),
+              check(entry['fotografia_cincho_folio']),
+              check(entry['fotografia_cabezal']),
+              check(entry['registro_ctrl_lectores']),
+              check(entry['ubicacion_ctrl_lectores']),
+              check(entry['registro_siitic']),
+              check(entry['ubicacion_siitic']),
+              entry['total']?.toString() ?? '0',
+            ];
+          }).toList(),
+          cellStyle: const pw.TextStyle(fontSize: 9),
+          headerStyle:
+              pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold),
+          border: pw.TableBorder.all(color: PdfColors.grey600, width: 0.5),
+          headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+          cellAlignment: pw.Alignment.center,
+          headerAlignment: pw.Alignment.center,
+          columnWidths: {
+            0: const pw.FixedColumnWidth(55),
+            1: const pw.FixedColumnWidth(55),
+            2: const pw.FixedColumnWidth(60),
+            3: const pw.FixedColumnWidth(60),
+            4: const pw.FixedColumnWidth(70),
+            5: const pw.FixedColumnWidth(55),
+            6: const pw.FixedColumnWidth(60),
+            7: const pw.FixedColumnWidth(55),
+            8: const pw.FixedColumnWidth(55),
+            9: const pw.FixedColumnWidth(60),
+            10: const pw.FixedColumnWidth(55),
+            11: const pw.FixedColumnWidth(60),
+            12: const pw.FixedColumnWidth(45),
+          },
+        ),
+
         // 🟩 FIRMAS
         pw.SizedBox(height: 50),
         pw.Row(

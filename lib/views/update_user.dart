@@ -126,7 +126,7 @@ class _UpdateUserState extends State<UpdateUser> {
                       TextFormField(
                         controller: rpController,
                         decoration: InputDecoration(
-                          labelText: "RP",
+                          labelText: "RPE",
                           prefixIcon:
                               const Icon(Icons.badge, color: Colors.teal),
                           border: OutlineInputBorder(

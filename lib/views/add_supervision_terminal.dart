@@ -114,10 +114,13 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
       final supervisiones = _supervisionData[terminalId]!;
       final total = calcularTotal(supervisiones);
 
+      final terminal = _terminales.firstWhere((t) => t.id == terminalId);
+
       Map<String, dynamic> data = {
         "terminal_id": terminalId.toString(),
+        "area": terminal.area, // 👈 se agrega aquí
         ...supervisiones,
-        "total": total, // 👈 Se agrega el campo total al JSON que se envía
+        "total": total,
       };
 
       bool supervisionGuardada =
