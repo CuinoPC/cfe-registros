@@ -114,7 +114,8 @@ class _ReporteSupervisionState extends State<ReporteSupervision> {
         _getSupervisionesHoneywellFiltradas();
 
     if (supervisionesFiltradasTerminales.isEmpty &&
-        supervisionesFiltradasLectores.isEmpty) {
+        supervisionesFiltradasLectores.isEmpty &&
+        supervisionesFiltradasHoneywell.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -127,8 +128,8 @@ class _ReporteSupervisionState extends State<ReporteSupervision> {
     await generarPDFReporte(
       area: _selectedArea!,
       supervisiones: supervisionesFiltradasTerminales,
-      supervisionesLectores:
-          supervisionesFiltradasLectores, // 👈 aquí se agrega
+      supervisionesLectores: supervisionesFiltradasLectores,
+      supervisionesHoneywell: supervisionesFiltradasHoneywell,
       supervisorTIC: supervisorTIC,
       jefeCentro: jefeCentro,
     );

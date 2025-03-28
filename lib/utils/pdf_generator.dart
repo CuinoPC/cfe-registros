@@ -9,6 +9,7 @@ Future<void> generarPDFReporte({
   required String area,
   required List<Map<String, dynamic>> supervisiones,
   required List<Map<String, dynamic>> supervisionesLectores,
+  required List<Map<String, dynamic>> supervisionesHoneywell,
   required String supervisorTIC,
   required String jefeCentro,
 }) async {
@@ -48,7 +49,7 @@ Future<void> generarPDFReporte({
                         fontSize: 18, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 4),
                 pw.Text('Terminales Portátiles y Lectores Ópticos',
-                    style: pw.TextStyle(fontSize: 12)),
+                    style: const pw.TextStyle(fontSize: 12)),
               ],
             ),
             pw.Column(
@@ -58,7 +59,7 @@ Future<void> generarPDFReporte({
                     style: pw.TextStyle(
                         fontSize: 13, fontWeight: pw.FontWeight.bold)),
                 pw.Text("Tecnologías de la Información y Comunicaciones",
-                    style: pw.TextStyle(fontSize: 11)),
+                    style: const pw.TextStyle(fontSize: 11)),
               ],
             ),
           ],
@@ -330,7 +331,7 @@ Future<void> generarPDFReporte({
             'Centro trabajo SIITIC',
             'TOTAL',
           ],
-          data: supervisiones.map((entry) {
+          data: supervisionesHoneywell.map((entry) {
             String check(value) => value == 1 ? 'Sí' : '';
             return [
               entry['inventario'] ?? '',
@@ -519,5 +520,8 @@ Future<void> generarPDFReporte({
     ),
   );
 
-  await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+  await Printing.sharePdf(
+    bytes: await pdf.save(),
+    filename: 'supervision_$area.pdf',
+  );
 }

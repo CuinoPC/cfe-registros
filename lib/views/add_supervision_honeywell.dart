@@ -67,7 +67,7 @@ class _UploadPhotosHoneywellPageState extends State<UploadPhotosHoneywellPage> {
     final picker = ImagePicker();
     final pickedFiles = await picker.pickMultiImage();
 
-    if (pickedFiles != null && pickedFiles.length <= 7) {
+    if (pickedFiles != null && pickedFiles.length <= 10) {
       setState(() {
         _selectedPhotos = pickedFiles;
       });
@@ -91,20 +91,7 @@ class _UploadPhotosHoneywellPageState extends State<UploadPhotosHoneywellPage> {
       _isUploading = true;
     });
 
-    bool fotosSubidas = await _terminalService.uploadTerminalPhotos(
-        widget.terminalId, _selectedPhotos);
-
-    if (!fotosSubidas) {
-      setState(() {
-        _isUploading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("No puedes subir más de 10 fotos en una semana")),
-      );
-      return;
-    }
-
+    // 🔹 Primero guardar supervisión
     for (var terminalId in _supervisionData.keys) {
       final supervisiones = _supervisionData[terminalId]!;
       final total = calcularTotal(supervisiones);
@@ -128,10 +115,26 @@ class _UploadPhotosHoneywellPageState extends State<UploadPhotosHoneywellPage> {
               content: Text(
                   "Error al guardar supervisión para terminal ID: $terminalId")),
         );
-        return;
+        return; // ⛔ No subir fotos si falla la supervisión
       }
     }
 
+    // 🔹 Si TODAS las supervisiones se guardaron bien, subir las fotos
+    bool fotosSubidas = await _terminalService.uploadTerminalPhotos(
+        widget.terminalId, _selectedPhotos);
+
+    if (!fotosSubidas) {
+      setState(() {
+        _isUploading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("No puedes subir más de 10 fotos en una semana")),
+      );
+      return; // ⛔ No continuar si fallan las fotos
+    }
+
+    // ✅ Si todo bien
     setState(() {
       _isUploading = false;
     });

@@ -72,7 +72,7 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
     final picker = ImagePicker();
     final pickedFiles = await picker.pickMultiImage();
 
-    if (pickedFiles != null && pickedFiles.length <= 7) {
+    if (pickedFiles != null && pickedFiles.length <= 10) {
       setState(() {
         _selectedPhotos = pickedFiles;
       });
@@ -96,29 +96,15 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
       _isUploading = true;
     });
 
-    bool fotosSubidas = await _terminalService.uploadTerminalPhotos(
-        widget.terminalId, _selectedPhotos);
-
-    if (!fotosSubidas) {
-      setState(() {
-        _isUploading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("No puedes subir más de 10 fotos en una semana")),
-      );
-      return;
-    }
-
+    // 🔹 Primero guardar supervisión
     for (var terminalId in _supervisionData.keys) {
       final supervisiones = _supervisionData[terminalId]!;
       final total = calcularTotal(supervisiones);
-
       final terminal = _terminales.firstWhere((t) => t.id == terminalId);
 
       Map<String, dynamic> data = {
         "terminal_id": terminalId.toString(),
-        "area": terminal.area, // 👈 se agrega aquí
+        "area": terminal.area,
         ...supervisiones,
         "total": total,
       };
@@ -136,6 +122,21 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
         );
         return;
       }
+    }
+
+    // 🔹 Si TODAS las supervisiones se guardaron bien, subir las fotos
+    bool fotosSubidas = await _terminalService.uploadTerminalPhotos(
+        widget.terminalId, _selectedPhotos);
+
+    if (!fotosSubidas) {
+      setState(() {
+        _isUploading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("No puedes subir más de 10 fotos en una semana")),
+      );
+      return;
     }
 
     setState(() {
