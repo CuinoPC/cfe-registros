@@ -165,20 +165,6 @@ class _TerminalListState extends State<TerminalList> {
     return usuario['rp'].toString();
   }
 
-  Future<void> _deleteTerminal(int id) async {
-    bool success = await _ApiTerminalService.deleteTerminal(id);
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Terminal eliminada correctamente")),
-      );
-      _fetchData();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error al eliminar la terminal")),
-      );
-    }
-  }
-
   void _navigateToUploadPhotos(int terminalId) async {
     final terminal = _terminales.firstWhere((t) => t.id == terminalId);
 
@@ -457,7 +443,7 @@ class _TerminalListState extends State<TerminalList> {
                         DataColumn2(
                             label: Text("Supervisión Nueva"), fixedWidth: 225),
                         DataColumn2(label: Text("Dañada"), fixedWidth: 80),
-                        DataColumn2(label: Text("Opciones"), fixedWidth: 100),
+                        DataColumn2(label: Text("Opciones"), fixedWidth: 80),
                       ],
                       rows: _filteredTerminales.asMap().entries.map((entry) {
                         int index = entry.key + 1;
@@ -532,31 +518,23 @@ class _TerminalListState extends State<TerminalList> {
                             ),
                           ),
                           DataCell(
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit,
-                                      color: Colors.blue),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            UpdateTerminal(terminal: terminal),
-                                      ),
-                                    ).then((updated) {
-                                      if (updated == true) _fetchData();
-                                    });
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
-                                  onPressed: () {
-                                    _deleteTerminal(terminal.id);
-                                  },
-                                ),
-                              ],
+                            Center(
+                              // ✅ Centra horizontalmente
+                              child: IconButton(
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          UpdateTerminal(terminal: terminal),
+                                    ),
+                                  ).then((updated) {
+                                    if (updated == true) _fetchData();
+                                  });
+                                },
+                              ),
                             ),
                           ),
                         ]);

@@ -113,6 +113,8 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       obscureText: _obscurePassword,
+                      onSubmitted: (_) =>
+                          _login(), // ✅ Aquí llamas al login con Enter
                     ),
                     const SizedBox(height: 20),
                     _isLoading

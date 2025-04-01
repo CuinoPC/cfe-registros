@@ -38,6 +38,7 @@ class TerminalService {
       String area) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
+    String? nombreUsuario = prefs.getString('nombre_usuario');
     if (token == null) return false;
 
     final response = await http.post(
@@ -51,7 +52,8 @@ class TerminalService {
         "rpe_responsable": rpe,
         "nombre_responsable": nombre,
         "usuario_id": usuarioId,
-        "area": area
+        "area": area,
+        "realizado_por": nombreUsuario ?? "Desconocido"
       }),
     );
 
@@ -70,6 +72,7 @@ class TerminalService {
       String area) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
+    String? nombreUsuario = prefs.getString('nombre_usuario');
     if (token == null) return false;
 
     final response = await http.put(
@@ -83,7 +86,8 @@ class TerminalService {
         "rpe_responsable": rpe,
         "nombre_responsable": nombre,
         "usuario_id": usuarioId,
-        "area": area
+        "area": area,
+        "realizado_por": nombreUsuario ?? "Desconocido"
       }),
     );
 

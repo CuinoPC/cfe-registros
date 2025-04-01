@@ -607,6 +607,7 @@ class _TerminalesDanadasPageState extends State<TerminalesDanadasPage> {
                 FilePickerResult? result = await FilePicker.platform.pickFiles(
                   type: FileType.custom,
                   allowedExtensions: ['pdf'],
+                  withData: true,
                 );
 
                 if (result != null && result.files.single.bytes != null) {

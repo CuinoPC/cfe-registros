@@ -145,20 +145,6 @@ class _LectorListState extends State<LectorList> {
     return usuario['rp'];
   }
 
-  Future<void> _deleteLector(int id) async {
-    bool success = await _lectorService.deleteLector(id);
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Lector eliminado correctamente")),
-      );
-      _fetchData();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error al eliminar el lector")),
-      );
-    }
-  }
-
   void _navigateToUploadPhotos(int lectorId) async {
     bool? updated = await Navigator.push(
       context,
@@ -402,7 +388,7 @@ class _LectorListState extends State<LectorList> {
                         DataColumn2(
                             label: Text("Supervisión Nueva"), fixedWidth: 225),
                         DataColumn2(label: Text("Dañado"), fixedWidth: 80),
-                        DataColumn2(label: Text("Opciones"), fixedWidth: 100),
+                        DataColumn2(label: Text("Opciones"), fixedWidth: 80),
                       ],
                       rows: _filteredLectores.asMap().entries.map((entry) {
                         int index = entry.key + 1;
@@ -476,31 +462,22 @@ class _LectorListState extends State<LectorList> {
                             ),
                           ),
                           DataCell(
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit,
-                                      color: Colors.blue),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            UpdateLector(lector: lector),
-                                      ),
-                                    ).then((updated) {
-                                      if (updated == true) _fetchData();
-                                    });
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
-                                  onPressed: () {
-                                    _deleteLector(lector.id);
-                                  },
-                                ),
-                              ],
+                            Center(
+                              child: IconButton(
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          UpdateLector(lector: lector),
+                                    ),
+                                  ).then((updated) {
+                                    if (updated == true) _fetchData();
+                                  });
+                                },
+                              ),
                             ),
                           ),
                         ]);

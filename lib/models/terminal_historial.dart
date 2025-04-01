@@ -10,6 +10,7 @@ class HistorialRegistro {
   final int usuarioId;
   final String area;
   final String accion;
+  final String realizadoPor;
   final DateTime fecha;
 
   HistorialRegistro({
@@ -24,6 +25,7 @@ class HistorialRegistro {
     required this.usuarioId,
     required this.area,
     required this.accion,
+    required this.realizadoPor,
     required this.fecha,
   });
 
@@ -40,7 +42,8 @@ class HistorialRegistro {
       usuarioId: json['usuario_id'],
       area: json['area'],
       accion: json['accion'],
-      fecha: DateTime.parse(json['fecha']), // ✅ Convertir fecha
+      realizadoPor: json['realizado_por'] ?? 'No disponible',
+      fecha: DateTime.parse(json['fecha']),
     );
   }
 }

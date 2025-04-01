@@ -10,6 +10,7 @@ class HistorialLector {
   final int usuarioId;
   final String area;
   final String accion;
+  final String realizadoPor;
   final DateTime fecha;
 
   HistorialLector({
@@ -24,6 +25,7 @@ class HistorialLector {
     required this.usuarioId,
     required this.area,
     required this.accion,
+    required this.realizadoPor,
     required this.fecha,
   });
 
@@ -40,6 +42,7 @@ class HistorialLector {
       usuarioId: json['usuario_id'],
       area: json['area'],
       accion: json['accion'],
+      realizadoPor: json['realizado_por'] ?? 'No disponible',
       fecha: DateTime.parse(json['fecha']),
     );
   }

@@ -210,6 +210,7 @@ class _HistorialLectorPageState extends State<HistorialLectorPage> {
                     columns: const [
                       DataColumn2(label: Text("#"), fixedWidth: 50),
                       DataColumn(label: Text("Acción")),
+                      DataColumn(label: Text("Realizó")),
                       DataColumn(label: Text("Marca")),
                       DataColumn(label: Text("Modelo")),
                       DataColumn(label: Text("Folio")),
@@ -227,23 +228,25 @@ class _HistorialLectorPageState extends State<HistorialLectorPage> {
                           .format(registro.fecha);
 
                       return DataRow(cells: [
-                        DataCell(Text(index.toString())),
-                        DataCell(Text(registro.accion,
+                        DataCell(SelectableText(index.toString())),
+                        DataCell(SelectableText(registro.accion,
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: registro.accion == "Creación"
                                     ? Colors.green
                                     : Colors.blue))),
-                        DataCell(Text(registro.marca)),
-                        DataCell(Text(registro.modelo)),
-                        DataCell(Text(registro.folio)),
-                        DataCell(Text(registro.tipoConector)),
-                        DataCell(Text(registro.rpeResponsable)), // 🆕
-                        DataCell(Text(registro.nombreResponsable)), // 🆕
-                        DataCell(Text(
+                        DataCell(SelectableText(registro.realizadoPor)),
+                        DataCell(SelectableText(registro.marca)),
+                        DataCell(SelectableText(registro.modelo)),
+                        DataCell(SelectableText(registro.folio)),
+                        DataCell(SelectableText(registro.tipoConector)),
+                        DataCell(SelectableText(registro.rpeResponsable)), // 🆕
+                        DataCell(
+                            SelectableText(registro.nombreResponsable)), // 🆕
+                        DataCell(SelectableText(
                             "${_getNombreUsuario(registro.usuarioId)} (RP: ${_getRPUsuario(registro.usuarioId)})")),
-                        DataCell(Text(registro.area)),
-                        DataCell(Text(fechaFormateada)),
+                        DataCell(SelectableText(registro.area)),
+                        DataCell(SelectableText(fechaFormateada)),
                       ]);
                     }).toList(),
                   ),
